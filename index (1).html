@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SafeSignal — Rapid Crisis Response</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--surface:#111115;--surface2:#18181d;--surface3:#1f1f27;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --red:#e8002d;--red-dim:rgba(232,0,45,0.12);--red-glow:rgba(232,0,45,0.35);
+  --amber:#f59e0b;--green:#10b981;--blue:#3b82f6;--purple:#a78bfa;--pink:#f472b6;--cyan:#06b6d4;--orange:#f97316;
+  --text:#e4e4e7;--muted:#71717a;
+  --font-disp:'Bebas Neue',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --r:12px;--r-lg:18px;
+  --nav-h:58px;--ticker-h:36px;--bottom-h:64px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);overflow-x:hidden;padding-bottom:var(--bottom-h)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--red);border-radius:4px}
+
+/* ─── NAV ─────────────────────────────── */
+nav{
+position:fixed;top:0;left:0;right:0;z-index:500;
+display:flex;align-items:center;justify-content:space-between;
+padding:0 2rem;height:var(--nav-h);
+background:rgba(9,9,11,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;
+font-family:var(--font-disp);font-size:1.5rem;letter-spacing:3px;color:var(--text)}
+.logo-pulse{width:9px;height:9px;border-radius:50%;background:var(--red);
+animation:navpulse 2s ease-in-out infinite}
+@keyframes navpulse{
+0%,100%{box-shadow:0 0 6px var(--red)}
+50%{box-shadow:0 0 18px var(--red),0 0 35px var(--red-glow)}}
+/* Desktop nav links — hidden on mobile */
+.nav-links{display:flex;align-items:center;gap:0.25rem}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:500;
+padding:6px 14px;border-radius:8px;transition:all 0.2s;letter-spacing:0.3px}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{color:var(--red)}
+.nav-sos-btn{
+background:var(--red);color:#fff;border:none;
+font-family:var(--font-disp);font-size:1rem;letter-spacing:2px;
+padding:7px 20px;border-radius:8px;cursor:pointer;
+box-shadow:0 0 20px var(--red-glow);transition:all 0.2s}
+.nav-sos-btn:hover{transform:scale(1.05);box-shadow:0 0 30px var(--red-glow)}
+
+/* ─── TICKER (FIXED below nav) ───── */
+.alerts-bar{
+position:fixed;top:var(--nav-h);left:0;right:0;z-index:490;
+background:var(--surface);border-bottom:1px solid rgba(232,0,45,0.18);
+padding:9px 0;overflow:hidden;height:var(--ticker-h);
+}
+.alerts-bar::before,.alerts-bar::after{
+content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none}
+.alerts-bar::before{left:0;background:linear-gradient(to right,var(--surface),transparent)}
+.alerts-bar::after{right:0;background:linear-gradient(to left,var(--surface),transparent)}
+.ticker-label-badge{
+position:absolute;left:0;top:0;bottom:0;z-index:3;
+display:flex;align-items:center;padding:0 14px;
+font-family:var(--font-mono);font-size:0.6rem;letter-spacing:2px;color:var(--red);
+background:var(--surface);border-right:1px solid rgba(232,0,45,0.2);
+text-transform:uppercase;gap:6px;white-space:nowrap;
+}
+.tlb-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:navpulse 1.5s infinite}
+.ticker-track{
+display:flex;gap:3rem;white-space:nowrap;
+padding-left:120px;
+animation:ticker 32s linear infinite;
+}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{
+display:flex;align-items:center;gap:8px;
+font-size:0.75rem;font-family:var(--font-mono);color:var(--muted)}
+.ticker-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.ticker-dot.red{background:var(--red);box-shadow:0 0 5px var(--red)}
+.ticker-dot.amber{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+.ticker-dot.green{background:var(--green)}
+.ticker-dot.blue{background:var(--blue)}
+
+/* ─── BOTTOM NAV (MOBILE) ─────────────── */
+.bottom-nav{
+position:fixed;bottom:0;left:0;right:0;z-index:500;
+display:none;
+background:rgba(9,9,11,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+border-top:1px solid var(--border);
+height:var(--bottom-h);padding:0 0.5rem;
+align-items:center;justify-content:space-around;
+}
+.bn-item{
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:3px;padding:6px 10px;border-radius:10px;
+cursor:pointer;transition:all 0.2s;min-width:52px;border:none;background:transparent;
+color:var(--muted);font-family:var(--font-body);
+}
+.bn-item.active{color:var(--red)}
+.bn-icon{font-size:1.2rem;line-height:1}
+.bn-label{font-size:0.6rem;letter-spacing:0.5px;font-weight:500;text-transform:uppercase;font-family:var(--font-mono)}
+
+/* ─── SECTIONS ────────────────────────── */
+section{display:none;padding-top:calc(var(--nav-h) + var(--ticker-h));min-height:100vh}
+section.active{display:block}
+
+/* ─── HERO ────────────────────────────── */
+.hero{
+min-height:calc(100vh - var(--nav-h) - var(--ticker-h));
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+text-align:center;padding:2rem;
+background:radial-gradient(ellipse 60% 50% at 50% 60%,rgba(232,0,45,0.07) 0%,transparent 70%);
+position:relative;overflow:hidden;
+}
+.hero-grid-bg{
+position:absolute;inset:0;pointer-events:none;
+background-image:
+linear-gradient(rgba(232,0,45,0.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(232,0,45,0.03) 1px,transparent 1px);
+background-size:56px 56px;
+mask-image:radial-gradient(ellipse 80% 70% at 50% 60%,black 20%,transparent 75%);
+-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 60%,black 20%,transparent 75%);
+}
+.hero > *{position:relative;z-index:1}
+.hero-label{
+font-family:var(--font-mono);font-size:0.68rem;letter-spacing:3px;
+color:var(--red);text-transform:uppercase;margin-bottom:1.5rem;
+border:1px solid rgba(232,0,45,0.3);padding:5px 16px;border-radius:100px;
+display:inline-flex;align-items:center;gap:8px;background:rgba(232,0,45,0.05);
+animation:fadeup 0.6s ease both;
+}
+.hero-label-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:navpulse 1.8s infinite}
+.hero h1{
+font-family:var(--font-disp);font-size:clamp(3.5rem,10vw,7.5rem);
+line-height:0.92;letter-spacing:4px;margin-bottom:1.2rem;
+animation:fadeup 0.6s 0.1s ease both;
+}
+.hero h1 span{color:var(--red)}
+.hero p{
+font-size:1rem;color:var(--muted);max-width:480px;margin:0 auto 2.5rem;
+animation:fadeup 0.6s 0.2s ease both;line-height:1.65;font-weight:300;
+}
+@keyframes fadeup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* SOS BUTTON */
+.sos-wrap{
+position:relative;display:flex;align-items:center;justify-content:center;
+width:200px;height:200px;margin:0 auto 2.5rem;
+animation:fadeup 0.6s 0.3s ease both;
+}
+.sos-ring{
+position:absolute;border-radius:50%;border:1px solid rgba(232,0,45,0.3);
+animation:ring-expand 2.5s ease-out infinite;
+}
+.sos-ring:nth-child(1){width:100%;height:100%;animation-delay:0s}
+.sos-ring:nth-child(2){width:130%;height:130%;animation-delay:0.5s}
+.sos-ring:nth-child(3){width:160%;height:160%;animation-delay:1s}
+@keyframes ring-expand{0%{opacity:0.6;transform:scale(0.85)}100%{opacity:0;transform:scale(1.1)}}
+.sos-btn{
+position:relative;z-index:2;width:150px;height:150px;border-radius:50%;
+background:radial-gradient(circle at 35% 35%,#ff1a45,var(--red) 60%,#a8001f);
+border:none;cursor:pointer;
+font-family:var(--font-disp);font-size:2.2rem;letter-spacing:5px;color:#fff;
+box-shadow:0 0 40px var(--red-glow),0 0 80px rgba(232,0,45,0.15),inset 0 2px 0 rgba(255,255,255,0.15);
+transition:all 0.15s;user-select:none;
+}
+.sos-btn:hover{transform:scale(1.06);box-shadow:0 0 60px var(--red-glow),0 0 100px rgba(232,0,45,0.2)}
+.sos-btn:active{transform:scale(0.96)}
+.sos-btn.triggered{animation:sos-pulse 0.4s ease}
+@keyframes sos-pulse{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* QUICK ACTIONS */
+.quick-actions{
+display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;
+max-width:640px;margin:0 auto 3rem;
+animation:fadeup 0.6s 0.4s ease both;
+}
+.qa-btn{
+display:flex;align-items:center;gap:8px;
+background:var(--surface);border:1px solid var(--border);
+color:var(--text);font-family:var(--font-body);font-size:0.85rem;font-weight:500;
+padding:10px 18px;border-radius:100px;cursor:pointer;
+transition:all 0.2s;white-space:nowrap;
+}
+.qa-btn:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-2px)}
+.qa-btn .icon{font-size:1rem}
+.qa-btn.live-loc{border-color:rgba(6,182,212,0.35);color:var(--cyan)}
+.qa-btn.live-loc:hover{background:rgba(6,182,212,0.07)}
+.qa-btn.contacts{border-color:rgba(59,130,246,0.35);color:var(--blue)}
+.qa-btn.contacts:hover{background:rgba(59,130,246,0.07)}
+.qa-btn.nearby-q{border-color:rgba(16,185,129,0.35);color:var(--green)}
+.qa-btn.nearby-q:hover{background:rgba(16,185,129,0.07)}
+.qa-btn.guide-q{border-color:rgba(245,158,11,0.35);color:var(--amber)}
+.qa-btn.guide-q:hover{background:rgba(245,158,11,0.07)}
+.qa-btn.ai-q{border-color:rgba(167,139,250,0.35);color:var(--purple)}
+.qa-btn.ai-q:hover{background:rgba(167,139,250,0.07)}
+
+/* ─── CARDS / MODULES SECTION ─────────── */
+.cards-section{padding:3.5rem 2rem 5rem;max-width:1200px;margin:0 auto}
+.section-label{
+font-family:var(--font-mono);font-size:0.68rem;letter-spacing:3px;
+color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem;
+}
+.section-title{font-family:var(--font-disp);font-size:2.4rem;letter-spacing:2px;margin-bottom:0.4rem}
+.section-desc{font-size:0.88rem;color:var(--muted);margin-bottom:2.5rem;line-height:1.6;max-width:500px}
+
+/* BENTO GRID */
+.cards-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:1rem;
+}
+.card{
+background:var(--surface);border:1px solid var(--border);
+border-radius:var(--r-lg);padding:1.5rem;
+transition:all 0.25s;cursor:pointer;
+position:relative;overflow:hidden;
+}
+.card::before{
+content:'';position:absolute;inset:0;
+background:radial-gradient(ellipse at top left,var(--card-glow,rgba(255,255,255,0.03)),transparent 60%);
+pointer-events:none;
+}
+.card:hover{border-color:var(--card-hover-border,rgba(255,255,255,0.16));transform:translateY(-3px);background:var(--surface2)}
+.card-icon{font-size:1.8rem;margin-bottom:0.9rem}
+.card h3{font-size:1rem;font-weight:600;margin-bottom:0.35rem}
+.card p{font-size:0.8rem;color:var(--muted);line-height:1.55}
+.card-tag{
+display:inline-block;margin-top:0.9rem;
+font-family:var(--font-mono);font-size:0.62rem;letter-spacing:1px;
+padding:3px 10px;border-radius:100px;
+background:rgba(255,255,255,0.05);color:var(--muted);text-transform:uppercase;
+}
+.card.featured{
+grid-column:span 2;
+background:linear-gradient(135deg,rgba(232,0,45,0.1) 0%,var(--surface) 55%);
+border-color:rgba(232,0,45,0.25);
+}
+.card.featured .card-icon{font-size:2.2rem}
+.card.featured h3{font-family:var(--font-disp);font-size:1.6rem;letter-spacing:2px}
+.card.featured:hover{border-color:rgba(232,0,45,0.45)}
+.card-pulse{
+position:absolute;top:1.2rem;right:1.2rem;
+width:9px;height:9px;border-radius:50%;background:var(--red);animation:navpulse 2s infinite;
+}
+.card.fire{--card-glow:rgba(249,115,22,0.07);--card-hover-border:rgba(249,115,22,0.35)}
+.card.fire .card-tag{background:rgba(249,115,22,0.1);color:var(--orange)}
+.card.flood{--card-glow:rgba(6,182,212,0.07);--card-hover-border:rgba(6,182,212,0.35)}
+.card.flood .card-tag{background:rgba(6,182,212,0.1);color:var(--cyan)}
+.card.quake{--card-glow:rgba(245,158,11,0.07);--card-hover-border:rgba(245,158,11,0.35)}
+.card.quake .card-tag{background:rgba(245,158,11,0.1);color:var(--amber)}
+.card.hospital{--card-glow:rgba(59,130,246,0.07);--card-hover-border:rgba(59,130,246,0.35)}
+.card.hospital .card-tag{background:rgba(59,130,246,0.1);color:var(--blue)}
+.card.police{--card-glow:rgba(232,0,45,0.07);--card-hover-border:rgba(232,0,45,0.35)}
+.card.police .card-tag{background:rgba(232,0,45,0.1);color:var(--red)}
+.card.women{--card-glow:rgba(244,114,182,0.07);--card-hover-border:rgba(244,114,182,0.35)}
+.card.women .card-tag{background:rgba(244,114,182,0.1);color:var(--pink)}
+.card.health{--card-glow:rgba(16,185,129,0.07);--card-hover-border:rgba(16,185,129,0.35)}
+.card.health .card-tag{background:rgba(16,185,129,0.1);color:var(--green)}
+.card.ai{--card-glow:rgba(167,139,250,0.07);--card-hover-border:rgba(167,139,250,0.35)}
+.card.ai .card-tag{background:rgba(167,139,250,0.1);color:var(--purple)}
+.card.liveloc{--card-glow:rgba(6,182,212,0.07);--card-hover-border:rgba(6,182,212,0.35)}
+.card.liveloc .card-tag{background:rgba(6,182,212,0.1);color:var(--cyan)}
+
+/* ─── PAGE HERO ─────────────────────────── */
+.page-hero{padding:3.5rem 2rem 2rem;max-width:900px;margin:0 auto}
+.page-hero h2{font-family:var(--font-disp);font-size:3rem;letter-spacing:3px;margin-bottom:0.5rem}
+.page-hero p{color:var(--muted);font-size:0.9rem}
+
+/* ─── CONTACTS SECTION ─────────────────── */
+.contacts-container{padding:0 2rem 5rem;max-width:900px;margin:0 auto}
+
+/* National Numbers */
+.nat-numbers-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:2.5rem;
+}
+.nat-card{
+background:var(--surface);border:1px solid var(--border);
+border-radius:var(--r);padding:1rem 1.25rem;
+display:flex;align-items:center;gap:1rem;cursor:pointer;
+transition:all 0.2s;text-decoration:none;
+}
+.nat-card:hover{transform:translateY(-2px);border-color:var(--nat-color,var(--border2))}
+.nat-icon{
+width:44px;height:44px;border-radius:10px;flex-shrink:0;
+display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+background:var(--nat-bg,var(--surface2));border:1px solid var(--nat-border,var(--border));
+}
+.nat-info strong{font-size:0.9rem;font-weight:600;display:block;color:var(--text)}
+.nat-info span{font-family:var(--font-mono);font-size:0.78rem;color:var(--nat-color,var(--muted))}
+.nat-label{font-size:0.6rem;letter-spacing:1px;font-family:var(--font-mono);text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+
+.nat-card.police{--nat-color:var(--red);--nat-bg:rgba(232,0,45,0.08);--nat-border:rgba(232,0,45,0.2)}
+.nat-card.ambulance{--nat-color:var(--green);--nat-bg:rgba(16,185,129,0.08);--nat-border:rgba(16,185,129,0.2)}
+.nat-card.fire{--nat-color:var(--orange);--nat-bg:rgba(249,115,22,0.08);--nat-border:rgba(249,115,22,0.2)}
+.nat-card.women{--nat-color:var(--pink);--nat-bg:rgba(244,114,182,0.08);--nat-border:rgba(244,114,182,0.2)}
+.nat-card.disaster{--nat-color:var(--amber);--nat-bg:rgba(245,158,11,0.08);--nat-border:rgba(245,158,11,0.2)}
+.nat-card.childline{--nat-color:var(--blue);--nat-bg:rgba(59,130,246,0.08);--nat-border:rgba(59,130,246,0.2)}
+.nat-card.senior{--nat-color:var(--purple);--nat-bg:rgba(167,139,250,0.08);--nat-border:rgba(167,139,250,0.2)}
+.nat-card.coast{--nat-color:var(--cyan);--nat-bg:rgba(6,182,212,0.08);--nat-border:rgba(6,182,212,0.2)}
+
+.contacts-divider{
+display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;
+font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+}
+.contacts-divider::before,.contacts-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Add contact form */
+.add-contact-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:2rem}
+.add-contact-form h3{font-size:0.95rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem}
+.form-input{
+background:var(--bg);border:1px solid var(--border);
+border-radius:8px;padding:10px 14px;color:var(--text);
+font-family:var(--font-body);font-size:0.88rem;width:100%;
+transition:border-color 0.2s;outline:none;
+}
+.form-input:focus{border-color:rgba(232,0,45,0.5)}
+.form-input::placeholder{color:var(--muted)}
+.btn-primary{
+background:var(--red);color:#fff;border:none;
+font-family:var(--font-body);font-weight:600;font-size:0.88rem;
+padding:10px 20px;border-radius:8px;cursor:pointer;
+transition:all 0.2s;box-shadow:0 0 16px var(--red-dim);
+}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.contacts-list{display:flex;flex-direction:column;gap:0.75rem}
+.contact-card{
+display:flex;align-items:center;gap:1rem;
+background:var(--surface);border:1px solid var(--border);
+border-radius:var(--r);padding:1rem 1.25rem;
+}
+.contact-avatar{
+width:42px;height:42px;border-radius:50%;
+background:var(--surface2);border:1px solid var(--border);
+display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+}
+.contact-info{flex:1}
+.contact-info strong{font-size:0.95rem;font-weight:600;display:block}
+.contact-info span{font-size:0.8rem;color:var(--muted);font-family:var(--font-mono)}
+.contact-actions{display:flex;gap:0.5rem}
+.icon-btn{
+width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
+background:transparent;color:var(--muted);cursor:pointer;font-size:0.9rem;
+display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.badge-emergency{
+font-family:var(--font-mono);font-size:0.6rem;letter-spacing:1px;
+background:var(--red-dim);color:var(--red);border:1px solid rgba(232,0,45,0.25);
+padding:2px 8px;border-radius:100px;text-transform:uppercase;
+}
+
+/* ─── NEARBY SECTION ───────────────────── */
+.nearby-container{padding:0 2rem 5rem;max-width:1100px;margin:0 auto}
+.map-placeholder{
+width:100%;height:320px;background:var(--surface);
+border:1px solid var(--border);border-radius:var(--r-lg);
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:0.75rem;margin-bottom:2rem;position:relative;overflow:hidden;
+}
+.map-grid{
+position:absolute;inset:0;
+background-image:
+linear-gradient(rgba(59,130,246,0.05) 1px,transparent 1px),
+linear-gradient(90deg,rgba(59,130,246,0.05) 1px,transparent 1px);
+background-size:36px 36px;
+}
+.map-pin{position:absolute;font-size:1.5rem;animation:pin-bounce 2s ease-in-out infinite}
+@keyframes pin-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.map-pin.user{top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem}
+.map-pin.h1{top:28%;left:22%}
+.map-pin.h2{top:62%;left:70%}
+.map-pin.p1{top:24%;left:65%}
+.map-pin.p2{top:70%;left:30%}
+.map-pin.f1{top:48%;left:80%}
+.map-status{
+position:absolute;bottom:1rem;left:1rem;
+font-family:var(--font-mono);font-size:0.7rem;
+background:rgba(9,9,11,0.8);border:1px solid var(--border);
+padding:4px 12px;border-radius:100px;color:var(--green);
+display:flex;align-items:center;gap:6px;
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:navpulse 2s infinite}
+.filter-tabs{display:flex;gap:0.5rem;margin-bottom:1.25rem;flex-wrap:wrap}
+.filter-tab{
+background:var(--surface);border:1px solid var(--border);
+color:var(--muted);font-size:0.82rem;font-weight:500;
+padding:7px 16px;border-radius:100px;cursor:pointer;transition:all 0.2s;
+}
+.filter-tab:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.filter-tab.active{color:var(--red);border-color:rgba(232,0,45,0.4);background:var(--red-dim)}
+.nearby-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.75rem}
+.nearby-card{
+background:var(--surface);border:1px solid var(--border);
+border-radius:var(--r);padding:1.1rem 1.25rem;
+display:flex;align-items:flex-start;gap:1rem;transition:all 0.2s;
+}
+.nearby-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.nc-icon{
+width:40px;height:40px;border-radius:10px;flex-shrink:0;
+display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+}
+.nc-icon.hosp{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.2)}
+.nc-icon.police{background:rgba(232,0,45,0.1);border:1px solid rgba(232,0,45,0.2)}
+.nc-icon.fire{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)}
+.nc-meta strong{font-size:0.9rem;font-weight:600;display:block;margin-bottom:2px}
+.nc-meta span{font-size:0.78rem;color:var(--muted)}
+.nc-dist{margin-left:auto;font-family:var(--font-mono);font-size:0.72rem;color:var(--green);flex-shrink:0}
+
+/* ─── GUIDE SECTION ────────────────────── */
+.guide-container{padding:0 2rem 5rem;max-width:900px;margin:0 auto}
+.guide-search{
+background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+padding:10px 16px;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;
+}
+.guide-search span{color:var(--muted)}
+.guide-search input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font-body);font-size:0.9rem;flex:1}
+.guide-search input::placeholder{color:var(--muted)}
+.guide-accordion{display:flex;flex-direction:column;gap:0.5rem}
+.accordion-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.accordion-header{
+display:flex;align-items:center;gap:1rem;padding:1.1rem 1.25rem;cursor:pointer;transition:background 0.2s}
+.accordion-header:hover{background:var(--surface2)}
+.acc-icon{width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.acc-title{flex:1;font-weight:600;font-size:0.95rem}
+.acc-chevron{color:var(--muted);font-size:0.8rem;transition:transform 0.2s;flex-shrink:0}
+.accordion-item.open .acc-chevron{transform:rotate(180deg)}
+.accordion-body{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--border)}
+.accordion-item.open .accordion-body{display:block}
+.step-list{list-style:none;padding:0;margin-top:1rem}
+.step-list li{display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.88rem}
+.step-list li:last-child{border-bottom:none}
+.step-num{
+width:22px;height:22px;border-radius:50%;background:var(--red-dim);
+border:1px solid rgba(232,0,45,0.25);color:var(--red);font-size:0.7rem;font-weight:600;
+display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+
+/* ─── REPORT SECTION ───────────────────── */
+.report-container{padding:0 2rem 5rem;max-width:800px;margin:0 auto}
+.report-type-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.75rem;margin-bottom:2rem;
+}
+.report-type-card{
+background:var(--surface);border:2px solid var(--border);
+border-radius:var(--r);padding:1.2rem 1rem;text-align:center;
+cursor:pointer;transition:all 0.2s;
+}
+.report-type-card:hover{transform:translateY(-2px)}
+.report-type-card.selected{border-color:var(--rt-color);background:var(--rt-bg)}
+.rt-icon{font-size:1.8rem;margin-bottom:0.5rem}
+.rt-label{font-size:0.82rem;font-weight:600;color:var(--text);display:block}
+.report-type-card.fire{--rt-color:var(--orange);--rt-bg:rgba(249,115,22,0.07)}
+.report-type-card.flood{--rt-color:var(--cyan);--rt-bg:rgba(6,182,212,0.07)}
+.report-type-card.accident{--rt-color:var(--red);--rt-bg:rgba(232,0,45,0.07)}
+.report-type-card.crime{--rt-color:#a78bfa;--rt-bg:rgba(167,139,250,0.07)}
+.report-type-card.medical{--rt-color:var(--green);--rt-bg:rgba(16,185,129,0.07)}
+.report-type-card.earthquake{--rt-color:var(--amber);--rt-bg:rgba(245,158,11,0.07)}
+.report-type-card.hazard{--rt-color:var(--pink);--rt-bg:rgba(244,114,182,0.07)}
+.report-type-card.other{--rt-color:var(--muted);--rt-bg:var(--surface2)}
+
+.report-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.75rem;margin-bottom:1.5rem}
+.report-form label{display:block;font-size:0.82rem;font-weight:600;color:var(--muted);margin-bottom:0.4rem;letter-spacing:0.3px}
+.report-form .form-input{margin-bottom:1rem}
+.report-form textarea{
+background:var(--bg);border:1px solid var(--border);
+border-radius:8px;padding:10px 14px;color:var(--text);
+font-family:var(--font-body);font-size:0.88rem;width:100%;
+transition:border-color 0.2s;outline:none;
+resize:vertical;min-height:100px;
+}
+.report-form textarea:focus{border-color:rgba(232,0,45,0.5)}
+.report-form textarea::placeholder{color:var(--muted)}
+.severity-row{display:flex;gap:0.5rem;margin-bottom:1rem}
+.sev-btn{
+flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);
+background:transparent;color:var(--muted);font-size:0.8rem;font-weight:500;
+cursor:pointer;transition:all 0.2s;font-family:var(--font-body);
+}
+.sev-btn.low.active{background:rgba(16,185,129,0.15);border-color:var(--green);color:var(--green)}
+.sev-btn.med.active{background:rgba(245,158,11,0.15);border-color:var(--amber);color:var(--amber)}
+.sev-btn.high.active{background:rgba(232,0,45,0.15);border-color:var(--red);color:var(--red)}
+.location-row{
+display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;
+background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;
+}
+.location-row span{flex:1;font-size:0.88rem;color:var(--muted)}
+.location-row button{
+background:var(--surface2);border:1px solid var(--border);color:var(--cyan);
+font-size:0.8rem;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;
+font-family:var(--font-body);white-space:nowrap;
+}
+.media-upload{
+border:1px dashed var(--border2);border-radius:8px;padding:1.5rem;
+text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:1rem;
+}
+.media-upload:hover{border-color:rgba(232,0,45,0.4);background:var(--red-dim)}
+.media-upload p{font-size:0.82rem;color:var(--muted);margin-top:0.3rem}
+.report-submit-btn{
+width:100%;background:var(--red);color:#fff;border:none;
+font-family:var(--font-disp);font-size:1.3rem;letter-spacing:3px;
+padding:14px;border-radius:10px;cursor:pointer;
+box-shadow:0 0 24px var(--red-glow);transition:all 0.2s;
+}
+.report-submit-btn:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 0 40px var(--red-glow)}
+.recent-reports-section{margin-top:2.5rem}
+.recent-reports-section h3{font-family:var(--font-disp);font-size:1.6rem;letter-spacing:2px;margin-bottom:1rem}
+.report-feed{display:flex;flex-direction:column;gap:0.75rem}
+.report-item{
+background:var(--surface);border:1px solid var(--border);
+border-radius:var(--r);padding:1rem 1.25rem;
+display:flex;gap:1rem;align-items:flex-start;
+}
+.ri-badge{
+min-width:8px;width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.ri-body{flex:1}
+.ri-title{font-size:0.9rem;font-weight:600;margin-bottom:2px}
+.ri-meta{font-size:0.75rem;color:var(--muted);font-family:var(--font-mono);display:flex;gap:1rem;flex-wrap:wrap}
+.ri-sev{font-size:0.6rem;font-family:var(--font-mono);letter-spacing:1px;
+padding:2px 8px;border-radius:100px;text-transform:uppercase;flex-shrink:0}
+.ri-sev.high{background:rgba(232,0,45,0.12);color:var(--red);border:1px solid rgba(232,0,45,0.25)}
+.ri-sev.med{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.ri-sev.low{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
+
+/* ─── CHATBOT SECTION ──────────────────── */
+.chatbot-container{
+display:flex;flex-direction:column;
+height:calc(100vh - var(--nav-h) - var(--ticker-h) - var(--bottom-h));
+max-width:800px;margin:0 auto;padding:0 2rem;
+}
+.chat-header{
+display:flex;align-items:center;gap:1rem;
+padding:1.5rem 0 1rem;border-bottom:1px solid var(--border);margin-bottom:1rem;
+}
+.chat-avatar{
+width:44px;height:44px;border-radius:12px;
+background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(232,0,45,0.2));
+border:1px solid rgba(167,139,250,0.3);
+display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;
+}
+.chat-status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:navpulse 2s infinite;flex-shrink:0}
+.chat-info strong{font-size:1rem;font-weight:600;display:block}
+.chat-info span{font-size:0.78rem;color:var(--muted)}
+.chat-messages{
+flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1rem;
+padding:0.5rem 0;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;
+}
+.msg{display:flex;gap:0.75rem;align-items:flex-end;max-width:85%}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg-bubble{
+background:var(--surface);border:1px solid var(--border);
+border-radius:16px;padding:10px 14px;font-size:0.88rem;line-height:1.55;
+}
+.msg.user .msg-bubble{background:var(--red);border-color:transparent;color:#fff;border-radius:16px 16px 4px 16px}
+.msg.bot .msg-bubble{border-radius:16px 16px 16px 4px}
+.msg-time{font-size:0.65rem;color:var(--muted);font-family:var(--font-mono);flex-shrink:0}
+.chat-input-area{
+padding:1rem 0 0.5rem;border-top:1px solid var(--border);
+display:flex;gap:0.75rem;align-items:center;
+}
+.chat-input{
+flex:1;background:var(--surface);border:1px solid var(--border);
+border-radius:12px;padding:10px 14px;color:var(--text);
+font-family:var(--font-body);font-size:0.9rem;outline:none;
+transition:border-color 0.2s;
+}
+.chat-input:focus{border-color:rgba(167,139,250,0.5)}
+.chat-input::placeholder{color:var(--muted)}
+.chat-send-btn{
+width:40px;height:40px;border-radius:10px;
+background:var(--red);border:none;color:#fff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;font-size:1rem;
+transition:all 0.2s;flex-shrink:0;
+}
+.chat-send-btn:hover{opacity:0.85;transform:scale(1.05)}
+.suggested-queries{display:flex;flex-wrap:wrap;gap:0.5rem;padding-bottom:0.75rem}
+.sq-btn{
+background:var(--surface);border:1px solid var(--border);
+color:var(--muted);font-size:0.78rem;font-family:var(--font-body);
+padding:6px 12px;border-radius:100px;cursor:pointer;transition:all 0.2s;
+}
+.sq-btn:hover{color:var(--text);border-color:var(--border2);background:var(--surface2)}
+
+/* ─── SOS MODAL ────────────────────────── */
+.sos-modal-overlay{
+position:fixed;inset:0;z-index:1000;
+background:rgba(9,9,11,0.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+display:none;align-items:center;justify-content:center;
+}
+.sos-modal-overlay.active{display:flex}
+.sos-modal{
+background:var(--surface);border:1px solid rgba(232,0,45,0.4);
+border-radius:var(--r-lg);padding:2rem;max-width:420px;width:90%;
+text-align:center;box-shadow:0 0 60px rgba(232,0,45,0.2);
+}
+.sos-modal h2{font-family:var(--font-disp);font-size:2rem;letter-spacing:3px;color:var(--red);margin-bottom:0.5rem}
+.sos-modal p{color:var(--muted);font-size:0.88rem;margin-bottom:1.5rem}
+.sos-modal-actions{display:flex;flex-direction:column;gap:0.75rem}
+.sos-action-btn{
+display:flex;align-items:center;gap:1rem;
+background:var(--bg);border:1px solid var(--border);
+border-radius:10px;padding:1rem 1.25rem;cursor:pointer;
+transition:all 0.2s;text-decoration:none;
+}
+.sos-action-btn:hover{border-color:var(--btn-color,var(--border2));transform:translateY(-1px)}
+.sos-action-btn .sab-icon{font-size:1.4rem;flex-shrink:0}
+.sos-action-btn .sab-text{text-align:left;flex:1}
+.sos-action-btn .sab-text strong{display:block;font-size:0.95rem;color:var(--text)}
+.sos-action-btn .sab-text span{font-size:0.78rem;color:var(--muted);font-family:var(--font-mono)}
+.sos-action-btn .sab-arrow{color:var(--muted);font-size:0.9rem}
+.sos-action-btn.call-police{--btn-color:var(--red)}
+.sos-action-btn.call-ambulance{--btn-color:var(--green)}
+.sos-action-btn.call-fire{--btn-color:var(--orange)}
+.sos-modal-close{
+margin-top:1rem;background:transparent;border:1px solid var(--border);
+color:var(--muted);font-size:0.85rem;padding:8px 20px;border-radius:8px;cursor:pointer;
+font-family:var(--font-body);transition:all 0.2s;
+}
+.sos-modal-close:hover{background:var(--surface2);color:var(--text)}
+.sos-countdown{
+font-family:var(--font-disp);font-size:3rem;color:var(--red);letter-spacing:4px;
+margin-bottom:0.5rem;
+}
+
+/* ─── RESPONSIVE ────────────────────────── */
+@media(max-width:768px){
+  .nav-links{display:none}
+  .nav-sos-btn{display:none}
+  .bottom-nav{display:flex}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .card.featured{grid-column:span 2}
+  .form-row{grid-template-columns:1fr}
+  .nat-numbers-grid{grid-template-columns:1fr 1fr}
+  .report-type-grid{grid-template-columns:repeat(4,1fr)}
+  .chatbot-container{padding:0 1rem}
+  .page-hero{padding:2rem 1rem 1.5rem}
+  .page-hero h2{font-size:2.2rem}
+  .contacts-container,.nearby-container,.guide-container,.report-container{padding:0 1rem 5rem}
+  .cards-section{padding:2rem 1rem 4rem}
+}
+@media(max-width:480px){
+  .cards-grid{grid-template-columns:1fr}
+  .card.featured{grid-column:span 1}
+  .nat-numbers-grid{grid-template-columns:1fr 1fr}
+  .report-type-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><div class="logo-pulse"></div>SAFESIGNAL</a>
+  <div class="nav-links">
+    <a href="#" class="active" onclick="navigate('home',this)">Home</a>
+    <a href="#" onclick="navigate('nearby',this)">Nearby Help</a>
+    <a href="#" onclick="navigate('guide',this)">Guide</a>
+    <a href="#" onclick="navigate('report',this)">Report</a>
+    <a href="#" onclick="navigate('chatbot',this)">AI Chat</a>
+    <a href="#" onclick="navigate('contacts',this)">Contacts</a>
+  </div>
+  <button class="nav-sos-btn" onclick="openSOS()">SOS</button>
+</nav>
+
+<!-- TICKER -->
+<div class="alerts-bar">
+  <div class="ticker-label-badge"><div class="tlb-dot"></div>LIVE ALERTS</div>
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div class="bottom-nav">
+  <button class="bn-item active" onclick="navigate('home',this)" data-section="home">
+    <span class="bn-icon">🏠</span><span class="bn-label">Home</span>
+  </button>
+  <button class="bn-item" onclick="navigate('nearby',this)" data-section="nearby">
+    <span class="bn-icon">📍</span><span class="bn-label">Nearby</span>
+  </button>
+  <button class="bn-item" onclick="navigate('guide',this)" data-section="guide">
+    <span class="bn-icon">📋</span><span class="bn-label">Guide</span>
+  </button>
+  <button class="bn-item" onclick="navigate('report',this)" data-section="report">
+    <span class="bn-icon">🚨</span><span class="bn-label">Report</span>
+  </button>
+  <button class="bn-item" onclick="navigate('chatbot',this)" data-section="chatbot">
+    <span class="bn-icon">🤖</span><span class="bn-label">AI Chat</span>
+  </button>
+</div>
+
+<!-- ══ HOME ══════════════════════════════ -->
+<section id="home" class="active">
+  <div class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-label"><div class="hero-label-dot"></div>CRISIS RESPONSE SYSTEM — ACTIVE</div>
+    <h1>SAFE<span>SIGNAL</span></h1>
+    <p>Your rapid emergency response companion. One tap to alert, locate, and connect with help.</p>
+    <div class="sos-wrap">
+      <div class="sos-ring"></div><div class="sos-ring"></div><div class="sos-ring"></div>
+      <button class="sos-btn" id="sosBtn" onclick="openSOS()">SOS</button>
+    </div>
+    <div class="quick-actions">
+      <button class="qa-btn live-loc" onclick="navigate('nearby')"><span class="icon">📡</span>Live Location</button>
+      <button class="qa-btn contacts" onclick="navigate('contacts')"><span class="icon">📞</span>Emergency Contacts</button>
+      <button class="qa-btn nearby-q" onclick="navigate('nearby')"><span class="icon">🏥</span>Nearby Help</button>
+      <button class="qa-btn guide-q" onclick="navigate('guide')"><span class="icon">📋</span>Safety Guide</button>
+      <button class="qa-btn ai-q" onclick="navigate('chatbot')"><span class="icon">🤖</span>AI Assistant</button>
+    </div>
+  </div>
+
+  <div class="cards-section">
+    <div class="section-label">RESPONSE MODULES</div>
+    <div class="section-title">WHAT DO YOU NEED?</div>
+    <div class="section-desc">Instant access to every emergency resource, guide, and contact in one place.</div>
+    <div class="cards-grid">
+      <div class="card featured" onclick="openSOS()">
+        <div class="card-pulse"></div>
+        <div class="card-icon">🆘</div>
+        <h3>EMERGENCY SOS</h3>
+        <p>Instantly alerts emergency contacts with your live GPS location and sends distress signal.</p>
+        <span class="card-tag">ONE TAP ACTIVATE</span>
+      </div>
+      <div class="card fire" onclick="navigate('guide')">
+        <div class="card-icon">🔥</div>
+        <h3>Fire Emergency</h3>
+        <p>Evacuation routes, fire safety protocols, and nearest fire station.</p>
+        <span class="card-tag">FIRE SAFETY</span>
+      </div>
+      <div class="card flood" onclick="navigate('guide')">
+        <div class="card-icon">🌊</div>
+        <h3>Flood Response</h3>
+        <p>Real-time flood warnings, safe zones, and rescue coordination.</p>
+        <span class="card-tag">FLOOD ALERT</span>
+      </div>
+      <div class="card quake" onclick="navigate('guide')">
+        <div class="card-icon">🌍</div>
+        <h3>Earthquake Guide</h3>
+        <p>Drop-cover-hold protocol, structural safety checks, and aftershock guidance.</p>
+        <span class="card-tag">SEISMIC</span>
+      </div>
+      <div class="card hospital" onclick="navigate('nearby')">
+        <div class="card-icon">🏥</div>
+        <h3>Nearby Hospitals</h3>
+        <p>Live availability of ICUs and ER departments within 10km radius.</p>
+        <span class="card-tag">MEDICAL</span>
+      </div>
+      <div class="card police" onclick="navigate('contacts')">
+        <div class="card-icon">🚔</div>
+        <h3>Police & Security</h3>
+        <p>Direct dial to nearest police station. One-tap emergency call.</p>
+        <span class="card-tag">LAW ENFORCEMENT</span>
+      </div>
+      <div class="card women" onclick="navigate('contacts')">
+        <div class="card-icon">🛡️</div>
+        <h3>Women's Safety</h3>
+        <p>Women helpline 1091, safe route guidance, and panic share feature.</p>
+        <span class="card-tag">SAFETY SHIELD</span>
+      </div>
+      <div class="card health" onclick="navigate('guide')">
+        <div class="card-icon">🩺</div>
+        <h3>First Aid Guide</h3>
+        <p>Step-by-step first aid for CPR, burns, fractures, and more emergencies.</p>
+        <span class="card-tag">FIRST AID</span>
+      </div>
+      <div class="card ai" onclick="navigate('chatbot')">
+        <div class="card-icon">🤖</div>
+        <h3>AI Crisis Assistant</h3>
+        <p>24/7 AI-powered guidance for any emergency situation you're facing.</p>
+        <span class="card-tag">AI POWERED</span>
+      </div>
+      <div class="card liveloc" onclick="navigate('nearby')">
+        <div class="card-icon">📡</div>
+        <h3>Live Location Share</h3>
+        <p>Share real-time GPS with emergency contacts and rescue teams.</p>
+        <span class="card-tag">GPS TRACKING</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NEARBY ════════════════════════════ -->
+<section id="nearby">
+  <div class="page-hero" style="max-width:1100px">
+    <div class="section-label">REAL-TIME</div>
+    <h2>NEARBY HELP</h2>
+    <p>Emergency services within your area. Tap any location to get directions.</p>
+  </div>
+  <div class="nearby-container">
+    <div class="map-placeholder">
+      <div class="map-grid"></div>
+      <div class="map-pin user">📍</div>
+      <div class="map-pin h1">🏥</div>
+      <div class="map-pin h2">🏥</div>
+      <div class="map-pin p1">🚔</div>
+      <div class="map-pin p2">🚔</div>
+      <div class="map-pin f1">🚒</div>
+      <div class="map-status"><div class="status-dot"></div>GPS ACTIVE — LOCATING...</div>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="loadNearby('hospital')">All</button>
+      <button class="filter-tab" onclick="loadNearby('hospital')">🏥 Hospitals</button>
+      <button class="filter-tab" onclick="loadNearby('police')">🚔 Police</button>
+      <button class="filter-tab" onclick="loadNearby('fire_station')">🚒 Fire Stations</button>
+      <button class="filter-tab" onclick="loadNearby('pharmacy')">💊 Pharmacy</button>
+    </div>
+    <div class="nearby-grid">
+      <div class="nearby-card"><div class="nc-icon hosp">🏥</div><div class="nc-meta"><strong>City General Hospital</strong><span>Emergency — Open 24/7</span></div><div class="nc-dist">0.8 km</div></div>
+      <div class="nearby-card"><div class="nc-icon police">🚔</div><div class="nc-meta"><strong>Central Police Station</strong><span>Active Patrol Unit</span></div><div class="nc-dist">1.2 km</div></div>
+      <div class="nearby-card"><div class="nc-icon fire">🚒</div><div class="nc-meta"><strong>Fire Station No. 4</strong><span>3 units available</span></div><div class="nc-dist">1.5 km</div></div>
+      <div class="nearby-card"><div class="nc-icon hosp">🏥</div><div class="nc-meta"><strong>Apollo Medical Centre</strong><span>ICU Available</span></div><div class="nc-dist">2.1 km</div></div>
+      <div class="nearby-card"><div class="nc-icon police">🚔</div><div class="nc-meta"><strong>Traffic Police Post</strong><span>Accident Response</span></div><div class="nc-dist">2.6 km</div></div>
+      <div class="nearby-card"><div class="nc-icon hosp">💊</div><div class="nc-meta"><strong>24hr MedPlus Pharmacy</strong><span>All medications</span></div><div class="nc-dist">0.4 km</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ GUIDE ═════════════════════════════ -->
+<section id="guide">
+  <div class="page-hero">
+    <div class="section-label">OFFLINE READY</div>
+    <h2>SAFETY GUIDE</h2>
+    <p>Step-by-step emergency protocols. Available even without internet.</p>
+  </div>
+  <div class="guide-container">
+    <div class="guide-search"><span>🔍</span><input type="text" placeholder="Search guides — fire, flood, CPR..." oninput="filterGuide(this.value)"/></div>
+    <div class="guide-accordion" id="guideAccordion">
+      <div class="accordion-item" data-tags="fire burn smoke">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.2)">🔥</div>
+          <span class="acc-title">Fire Emergency Protocol</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Activate the nearest fire alarm immediately and call 101.</span></li>
+            <li><div class="step-num">2</div><span>Alert everyone in the building. Do NOT use elevators.</span></li>
+            <li><div class="step-num">3</div><span>Crawl low under smoke — air is cleaner near the floor.</span></li>
+            <li><div class="step-num">4</div><span>Feel doors before opening — if hot, use alternate exit route.</span></li>
+            <li><div class="step-num">5</div><span>Meet at designated assembly point and await fire services.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="earthquake seismic tremor">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2)">🌍</div>
+          <span class="acc-title">Earthquake — Drop, Cover, Hold</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>DROP to hands and knees immediately.</span></li>
+            <li><div class="step-num">2</div><span>Take COVER under a sturdy desk, table, or against an interior wall.</span></li>
+            <li><div class="step-num">3</div><span>HOLD ON until shaking stops. Protect your head and neck.</span></li>
+            <li><div class="step-num">4</div><span>After shaking: check for gas leaks, exit carefully via stairs only.</span></li>
+            <li><div class="step-num">5</div><span>Stay away from damaged buildings. Expect aftershocks.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="flood water storm rain">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.2)">🌊</div>
+          <span class="acc-title">Flood Response Actions</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Move immediately to higher ground — never wait for official evacuation orders.</span></li>
+            <li><div class="step-num">2</div><span>Do NOT walk or drive through floodwater — 15cm can knock you down.</span></li>
+            <li><div class="step-num">3</div><span>Turn off electricity at the main breaker before water enters.</span></li>
+            <li><div class="step-num">4</div><span>Secure important documents in waterproof bags. Take emergency kit.</span></li>
+            <li><div class="step-num">5</div><span>Call NDRF Helpline: 1078 for rescue assistance.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="cpr heart first aid medical">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2)">🩺</div>
+          <span class="acc-title">CPR — Adult First Aid</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Check responsiveness — tap shoulders and shout "Are you okay?"</span></li>
+            <li><div class="step-num">2</div><span>Call 108 (Ambulance) immediately or have someone call while you begin CPR.</span></li>
+            <li><div class="step-num">3</div><span>Place heel of hand on centre of chest. Interlock fingers.</span></li>
+            <li><div class="step-num">4</div><span>Push hard and fast — 100-120 compressions per minute, 5–6cm depth.</span></li>
+            <li><div class="step-num">5</div><span>After 30 compressions, give 2 rescue breaths if trained. Repeat cycle.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="women safety harassment threat">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.2)">🛡️</div>
+          <span class="acc-title">Women's Personal Safety</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Trust your instincts — if something feels wrong, act immediately.</span></li>
+            <li><div class="step-num">2</div><span>Call Women Helpline 1091 or Nirbhaya Helpline 181.</span></li>
+            <li><div class="step-num">3</div><span>Share live location with trusted contact using SafeSignal's Live Location feature.</span></li>
+            <li><div class="step-num">4</div><span>Move toward crowded public places, avoid isolated areas.</span></li>
+            <li><div class="step-num">5</div><span>Use the SOS button to trigger a silent alert to your emergency contacts.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="accident road car vehicle">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(232,0,45,0.12);border:1px solid rgba(232,0,45,0.2)">🚗</div>
+          <span class="acc-title">Road Accident Response</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Call 108 for ambulance and 100 for police immediately.</span></li>
+            <li><div class="step-num">2</div><span>Do NOT move injured persons unless there is immediate danger (fire/flooding).</span></li>
+            <li><div class="step-num">3</div><span>Turn on hazard lights. Place warning triangle 50m behind vehicle.</span></li>
+            <li><div class="step-num">4</div><span>Control bleeding with firm pressure using clean cloth.</span></li>
+            <li><div class="step-num">5</div><span>Keep injured persons warm and conscious until help arrives.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ REPORT ════════════════════════════ -->
+<section id="report">
+  <div class="page-hero">
+    <div class="section-label">COMMUNITY RESPONSE</div>
+    <h2>REPORT INCIDENT</h2>
+    <p>Report emergencies in your area. Your report alerts nearby users and authorities instantly.</p>
+  </div>
+  <div class="report-container">
+    <div class="section-label" style="margin-bottom:0.75rem">SELECT INCIDENT TYPE</div>
+    <div class="report-type-grid">
+      <div class="report-type-card fire" onclick="selectReportType(this,'🔥','Fire')">
+        <div class="rt-icon">🔥</div><span class="rt-label">Fire</span>
+      </div>
+      <div class="report-type-card flood" onclick="selectReportType(this,'🌊','Flood')">
+        <div class="rt-icon">🌊</div><span class="rt-label">Flood</span>
+      </div>
+      <div class="report-type-card accident" onclick="selectReportType(this,'🚗','Accident')">
+        <div class="rt-icon">🚗</div><span class="rt-label">Accident</span>
+      </div>
+      <div class="report-type-card crime" onclick="selectReportType(this,'🚨','Crime')">
+        <div class="rt-icon">🚨</div><span class="rt-label">Crime</span>
+      </div>
+      <div class="report-type-card medical" onclick="selectReportType(this,'🩺','Medical')">
+        <div class="rt-icon">🩺</div><span class="rt-label">Medical</span>
+      </div>
+      <div class="report-type-card earthquake" onclick="selectReportType(this,'🌍','Earthquake')">
+        <div class="rt-icon">🌍</div><span class="rt-label">Earthquake</span>
+      </div>
+      <div class="report-type-card hazard" onclick="selectReportType(this,'⚠️','Hazard')">
+        <div class="rt-icon">⚠️</div><span class="rt-label">Hazard</span>
+      </div>
+      <div class="report-type-card other" onclick="selectReportType(this,'📋','Other')">
+        <div class="rt-icon">📋</div><span class="rt-label">Other</span>
+      </div>
+    </div>
+
+    <div class="report-form">
+      <label>INCIDENT TITLE</label>
+      <input class="form-input" type="text" id="reportTitle" placeholder="e.g. Large fire near market area"/>
+      
+      <label>DESCRIPTION</label>
+      <textarea class="report-form" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--font-body);font-size:0.88rem;width:100%;outline:none;resize:vertical;min-height:100px;margin-bottom:1rem" placeholder="Describe what you see — number of people affected, hazards visible, direction of spread..." id="reportDesc"></textarea>
+      
+      <label>SEVERITY LEVEL</label>
+      <div class="severity-row">
+        <button class="sev-btn low" onclick="selectSev(this,'low')">🟢 Low</button>
+        <button class="sev-btn med active" onclick="selectSev(this,'med')">🟡 Medium</button>
+        <button class="sev-btn high" onclick="selectSev(this,'high')">🔴 High</button>
+      </div>
+      
+      <label>LOCATION</label>
+      <div class="location-row">
+        <span id="locText">📍 Detecting your location...</span>
+        <button onclick="useMyLocation()">Use My GPS</button>
+      </div>
+      
+      <label>PHOTO / VIDEO (Optional)</label>
+      <div class="media-upload" onclick="this.querySelector('input').click()">
+        <input type="file" accept="image/*,video/*" style="display:none" onchange="handleMedia(event)"/>
+        <span style="font-size:1.5rem">📷</span>
+        <p>Tap to attach photo or video evidence</p>
+      </div>
+      
+      <button class="report-submit-btn" onclick="submitReport()">SUBMIT REPORT</button>
+    </div>
+
+    <div class="recent-reports-section">
+      <h3>RECENT REPORTS</h3>
+      <div class="report-feed" id="reportFeed">
+        <div class="report-item">
+          <div class="ri-badge" style="background:var(--red)"></div>
+          <div class="ri-body">
+            <div class="ri-title">Heavy flooding near Peth Road</div>
+            <div class="ri-meta"><span>📍 2.1 km away</span><span>⏱ 12 min ago</span></div>
+          </div>
+          <span class="ri-sev high">HIGH</span>
+        </div>
+        <div class="report-item">
+          <div class="ri-badge" style="background:var(--amber)"></div>
+          <div class="ri-body">
+            <div class="ri-title">Power lines down — MG Road junction</div>
+            <div class="ri-meta"><span>📍 0.8 km away</span><span>⏱ 34 min ago</span></div>
+          </div>
+          <span class="ri-sev med">MED</span>
+        </div>
+        <div class="report-item">
+          <div class="ri-badge" style="background:var(--orange)"></div>
+          <div class="ri-body">
+            <div class="ri-title">Vehicle fire — Expressway KM 14</div>
+            <div class="ri-meta"><span>📍 5.4 km away</span><span>⏱ 1 hr ago</span></div>
+          </div>
+          <span class="ri-sev high">HIGH</span>
+        </div>
+        <div class="report-item">
+          <div class="ri-badge" style="background:var(--green)"></div>
+          <div class="ri-body">
+            <div class="ri-title">Stray animal rescue needed — Sector 7</div>
+            <div class="ri-meta"><span>📍 1.3 km away</span><span>⏱ 2 hr ago</span></div>
+          </div>
+          <span class="ri-sev low">LOW</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CHATBOT ═══════════════════════════ -->
+<section id="chatbot">
+  <div class="chatbot-container">
+    <div class="chat-header">
+      <div class="chat-avatar">🤖</div>
+      <div class="chat-info">
+        <strong>SafeSignal AI Assistant</strong>
+        <span>Emergency guidance • Crisis support • 24/7</span>
+      </div>
+      <div class="chat-status-dot"></div>
+    </div>
+    <div class="suggested-queries">
+      <button class="sq-btn" onclick="sendSuggested('What do I do during a flood?')">🌊 During a flood?</button>
+      <button class="sq-btn" onclick="sendSuggested('How to perform CPR?')">🩺 CPR steps?</button>
+      <button class="sq-btn" onclick="sendSuggested('National emergency numbers India')">📞 Emergency numbers</button>
+      <button class="sq-btn" onclick="sendSuggested('Nearest shelter location')">🏠 Find shelter</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        <div class="msg-bubble">👋 Hello! I'm your SafeSignal AI assistant. I'm here to help you with emergency guidance, crisis support, and safety information. What do you need help with?</div>
+        <span class="msg-time">Now</span>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Describe your emergency or ask for guidance..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="chat-send-btn" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTS ══════════════════════════ -->
+<section id="contacts">
+  <div class="page-hero">
+    <div class="section-label">EMERGENCY NETWORK</div>
+    <h2>CONTACTS</h2>
+    <p>National helplines and your personal emergency contacts — all in one place.</p>
+  </div>
+  <div class="contacts-container">
+
+    <!-- National Numbers -->
+    <div class="section-label" style="margin-bottom:0.75rem">🇮🇳 NATIONAL EMERGENCY NUMBERS</div>
+    <div class="nat-numbers-grid">
+      <a class="nat-card police" href="tel:100">
+        <div class="nat-icon">🚔</div>
+        <div class="nat-info"><div class="nat-label">Police</div><strong>100</strong><span>Police Emergency</span></div>
+      </a>
+      <a class="nat-card ambulance" href="tel:108">
+        <div class="nat-icon">🚑</div>
+        <div class="nat-info"><div class="nat-label">Ambulance</div><strong>108</strong><span>Medical Emergency</span></div>
+      </a>
+      <a class="nat-card fire" href="tel:101">
+        <div class="nat-icon">🚒</div>
+        <div class="nat-info"><div class="nat-label">Fire Brigade</div><strong>101</strong><span>Fire Emergency</span></div>
+      </a>
+      <a class="nat-card women" href="tel:1091">
+        <div class="nat-icon">🛡️</div>
+        <div class="nat-info"><div class="nat-label">Women Helpline</div><strong>1091</strong><span>Women Safety</span></div>
+      </a>
+      <a class="nat-card disaster" href="tel:1078">
+        <div class="nat-icon">🆘</div>
+        <div class="nat-info"><div class="nat-label">NDRF</div><strong>1078</strong><span>Disaster Response</span></div>
+      </a>
+      <a class="nat-card childline" href="tel:1098">
+        <div class="nat-icon">👶</div>
+        <div class="nat-info"><div class="nat-label">Childline</div><strong>1098</strong><span>Child Safety</span></div>
+      </a>
+      <a class="nat-card senior" href="tel:14567">
+        <div class="nat-icon">👴</div>
+        <div class="nat-info"><div class="nat-label">Senior Citizen</div><strong>14567</strong><span>Elder Helpline</span></div>
+      </a>
+      <a class="nat-card coast" href="tel:1554">
+        <div class="nat-icon">⚓</div>
+        <div class="nat-info"><div class="nat-label">Coast Guard</div><strong>1554</strong><span>Maritime Emergency</span></div>
+      </a>
+    </div>
+
+    <div class="contacts-divider">MY EMERGENCY CONTACTS</div>
+
+    <!-- Add Contact Form -->
+    <div class="add-contact-form">
+      <h3>+ Add Emergency Contact</h3>
+      <div class="form-row">
+        <input class="form-input" id="newName" type="text" placeholder="Full Name"/>
+        <input class="form-input" id="newPhone" type="tel" placeholder="Phone Number"/>
+      </div>
+      <input class="form-input" id="newRelation" type="text" placeholder="Relation (e.g. Mother, Friend...)" style="margin-bottom:0.75rem"/>
+      <button class="btn-primary" onclick="addContact()">Add Contact</button>
+    </div>
+
+    <!-- Contacts List -->
+    <div class="contacts-list" id="contactsList">
+      <div class="contact-card">
+        <div class="contact-avatar">👩</div>
+        <div class="contact-info">
+          <strong>Priya Sharma <span class="badge-emergency">PRIMARY</span></strong>
+          <span>+91 98765 43210 · Mother</span>
+        </div>
+        <div class="contact-actions">
+          <button class="icon-btn" title="Call" onclick="window.open('tel:+919876543210')">📞</button>
+          <button class="icon-btn" title="Message">💬</button>
+          <button class="icon-btn danger" title="Remove" onclick="this.closest('.contact-card').remove()">🗑</button>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-avatar">👨</div>
+        <div class="contact-info">
+          <strong>Raj Sharma</strong>
+          <span>+91 91234 56789 · Father</span>
+        </div>
+        <div class="contact-actions">
+          <button class="icon-btn" title="Call" onclick="window.open('tel:+919123456789')">📞</button>
+          <button class="icon-btn" title="Message">💬</button>
+          <button class="icon-btn danger" title="Remove" onclick="this.closest('.contact-card').remove()">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SOS MODAL ═════════════════════════ -->
+<div class="sos-modal-overlay" id="sosModal">
+  <div class="sos-modal">
+    <div class="sos-countdown" id="sosCountdown">3</div>
+    <h2>⚠ EMERGENCY SOS</h2>
+    <p>Calling emergency services and alerting your contacts with live location in <strong id="sosCountText">3 seconds</strong>. Tap cancel to stop.</p>
+    <div class="sos-modal-actions">
+      <a class="sos-action-btn call-police" href="tel:100">
+        <span class="sab-icon">🚔</span>
+        <div class="sab-text"><strong>Call Police</strong><span>Dial 100</span></div>
+        <span class="sab-arrow">→</span>
+      </a>
+      <a class="sos-action-btn call-ambulance" href="tel:108">
+        <span class="sab-icon">🚑</span>
+        <div class="sab-text"><strong>Call Ambulance</strong><span>Dial 108</span></div>
+        <span class="sab-arrow">→</span>
+      </a>
+      <a class="sos-action-btn call-fire" href="tel:101">
+        <span class="sab-icon">🚒</span>
+        <div class="sab-text"><strong>Call Fire Brigade</strong><span>Dial 101</span></div>
+        <span class="sab-arrow">→</span>
+      </a>
+    </div>
+    <button class="sos-modal-close" onclick="closeSOS()">✕ Cancel</button>
+  </div>
+</div>
+
+<script>
+/* ─── TICKER ─── */
+const tickerData=[
+  {dot:'red',text:'🚨 ACTIVE — Flood warning issued for low-lying areas'},
+  {dot:'amber',text:'⚠ Road closure: National Highway blocked due to landslide'},
+  {dot:'green',text:'✅ Power restored in Sector 12 after 3-hour outage'},
+  {dot:'blue',text:'ℹ Cyclone watch lifted for coastal districts'},
+  {dot:'red',text:'🚨 Gas leak reported — Residents near Industrial Area advised to evacuate'},
+  {dot:'amber',text:'⚠ Heavy rainfall alert — IMD warning for next 48 hours'},
+  {dot:'green',text:'✅ All rescue operations completed — 47 people safely evacuated'},
+  {dot:'blue',text:'ℹ Medical camp set up at Community Hall for flood victims'},
+];
+const tt=document.getElementById('tickerTrack');
+[...tickerData,...tickerData].forEach(i=>{
+  tt.innerHTML+=`<div class="ticker-item"><div class="ticker-dot ${i.dot}"></div>${i.text}</div>`;
+});
+
+/* ─── NAVIGATION ─── */
+function navigate(sec,el){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(sec).classList.add('active');
+  // desktop nav
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  // bottom nav
+  document.querySelectorAll('.bn-item').forEach(b=>{
+    b.classList.toggle('active',b.dataset.section===sec);
+  });
+  window.scrollTo(0,0);
+}
+
+/* ─── ACCORDION ─── */
+function toggleAccordion(header){
+  const item=header.parentElement;
+  item.classList.toggle('open');
+}
+function filterGuide(q){
+  const v=q.toLowerCase();
+  document.querySelectorAll('.accordion-item').forEach(item=>{
+    const tags=item.dataset.tags||'';
+    const title=item.querySelector('.acc-title').textContent.toLowerCase();
+    item.style.display=(title.includes(v)||tags.includes(v)||v==='')?'block':'none';
+  });
+}
+
+/* ─── REPORT SECTION ─── */
+let selType='';
+function selectReportType(card,icon,name){
+  document.querySelectorAll('.report-type-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  selType=name;
+  document.getElementById('reportTitle').placeholder=`e.g. ${name} incident near...`;
+}
+let selSev='med';
+function selectSev(btn,sev){
+  document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selSev=sev;
+}
+function useMyLocation(){
+  const t=document.getElementById('locText');
+  t.textContent='📡 Detecting...';
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      t.textContent=`📍 ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+    },()=>{ t.textContent='📍 Location unavailable — enter manually'; });
+  } else { t.textContent='📍 GPS not supported'; }
+}
+function handleMedia(e){
+  const f=e.target.files[0];
+  if(f){
+    const up=e.target.closest('.media-upload');
+    up.querySelector('p').textContent='✅ '+f.name+' attached';
+  }
+}
+function submitReport(){
+  submitReportToBackend();
+}
+
+/* ─── CHATBOT ─── */
+const responses={
+  'flood':['During a flood: 1) Move to higher ground immediately. 2) Do NOT walk through floodwater. 3) Turn off electricity. 4) Call NDRF Helpline: 1078. Your safety is the priority — leave everything behind if needed.','🌊 Flood safety: Stay away from drains and rivers. Never drive through flooded roads. Keep emergency kit ready (documents, medicines, water, torch).'],
+  'fire':['🔥 Fire emergency: 1) Call 101 immediately. 2) Activate fire alarm. 3) Crawl low under smoke. 4) Never use elevators. 5) Meet at assembly point outside.'],
+  'cpr':['🩺 CPR steps: 1) Check response — tap shoulders. 2) Call 108. 3) 30 chest compressions at 5-6cm depth. 4) 2 rescue breaths. 5) Repeat. Keep going until help arrives — you can save a life!'],
+  'earthquake':['🌍 Earthquake: DROP, COVER, HOLD. Get under a table, protect your head. After shaking stops — check for gas leaks, exit via stairs only. Stay away from damaged structures.'],
+  'number':['📞 India Emergency Numbers:\n• Police: 100\n• Ambulance: 108\n• Fire: 101\n• Women Helpline: 1091\n• NDRF: 1078\n• Childline: 1098\n• Emergency (all): 112'],
+  'default':["I'm here to help with any emergency. You can ask me about: 🌊 Flood safety, 🔥 Fire protocols, 🩺 First aid / CPR, 🌍 Earthquake response, 📞 Emergency numbers, 🛡️ Personal safety. What do you need?"]
+};
+function matchResponse(msg){
+  const m=msg.toLowerCase();
+  if(m.includes('flood')||m.includes('water'))return responses.flood[Math.floor(Math.random()*responses.flood.length)];
+  if(m.includes('fire')||m.includes('burn'))return responses.fire[0];
+  if(m.includes('cpr')||m.includes('heart'))return responses.cpr[0];
+  if(m.includes('earthquake')||m.includes('tremor'))return responses.earthquake[0];
+  if(m.includes('number')||m.includes('call')||m.includes('helpline')||m.includes('emergency number'))return responses.number[0];
+  return responses.default[0];
+}
+function appendMsg(text,role){
+  const msgs=document.getElementById('chatMessages');
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  msgs.innerHTML+=`<div class="msg ${role}"><div class="msg-bubble">${text}</div><span class="msg-time">${t}</span></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const val=inp.value.trim();
+  if(!val)return;
+  appendMsg(val,'user');
+  inp.value='';
+  sendChatToBackend(val);
+}
+function sendSuggested(q){
+  navigate('chatbot');
+  document.getElementById('chatInput').value=q;
+  sendChat();
+}
+
+/* ─── CONTACTS ─── */
+function addContact(){
+  addContactToBackend();
+}
+
+/* ─── SOS MODAL ─── */
+let sosTimer=null;let sosCount=3;
+function openSOS(){
+  triggerSOS();
+  sosCount=3;
+  document.getElementById('sosCountdown').textContent=sosCount;
+  document.getElementById('sosCountText').textContent=sosCount+' seconds';
+  document.getElementById('sosModal').classList.add('active');
+  sosTimer=setInterval(()=>{
+    sosCount--;
+    document.getElementById('sosCountdown').textContent=sosCount;
+    document.getElementById('sosCountText').textContent=sosCount+' seconds';
+    if(sosCount<=0){clearInterval(sosTimer);document.getElementById('sosCountText').textContent='NOW — share your location!';}
+  },1000);
+}
+function closeSOS(){
+  clearInterval(sosTimer);
+  document.getElementById('sosModal').classList.remove('active');
+}
+
+/* ─── DETECT GPS FOR REPORT ─── */
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    document.getElementById('locText').textContent=`📍 ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+  });
+}
+</script>
+<script src="api.js"></script>
+</body>
+</html>
