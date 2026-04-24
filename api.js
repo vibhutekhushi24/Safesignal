@@ -47,24 +47,34 @@ async function apiFetch(path, options = {}) {
      sendChatToBackend(val);
    ─────────────────────────────────────────────────────────────── */
 async function sendChatToBackend(userMessage) {
-  // Show a "typing..." indicator
   const msgs = document.getElementById('chatMessages');
   const typingId = 'typing-' + Date.now();
   msgs.innerHTML += `<div class="msg bot" id="${typingId}">
-    <div class="msg-bubble" style="color:var(--muted);font-style:italic">⏳ Thinking...</div>
+    <div class="msg-bubble" style="color:var(--muted);font-style:italic">⏳ Connecting to AI... (first message may take ~15s)</div>
   </div>`;
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const data = await apiFetch('/api/chat', {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
+    const res = await fetch(BASE_URL + '/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: userMessage })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
+    const data = await res.json();
     document.getElementById(typingId)?.remove();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
     appendMsg(data.reply, 'bot');
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    appendMsg('⚠️ Could not reach AI. Check your connection and try again.', 'bot');
+    if (err.name === 'AbortError') {
+      appendMsg('⚠️ AI is waking up (Render free tier). Please send your message again in a few seconds.', 'bot');
+    } else {
+      appendMsg('⚠️ Could not reach AI. Check your connection and try again.', 'bot');
+    }
     console.error('Chat error:', err);
   }
 }
