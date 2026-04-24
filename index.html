@@ -1299,6 +1299,14 @@ function appendMsg(text,role){
   msgs.innerHTML+=`<div class="msg ${role}"><div class="msg-bubble">${text}</div><span class="msg-time">${t}</span></div>`;
   msgs.scrollTop=msgs.scrollHeight;
 }
+
+  function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const val=inp.value.trim();
+  if(!val)return;
+  appendMsg(val,'user');
+  inp.value='';
+  setTimeout(()=>appendMsg(matchResponse(val),'bot'),700);
 }
 function sendSuggested(q){
   navigate('chatbot');
@@ -1355,6 +1363,5 @@ if(navigator.geolocation){
   });
 }
 </script>
-<script src="api.js"></script>
 </body>
 </html>
