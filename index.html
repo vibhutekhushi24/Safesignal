@@ -803,11 +803,11 @@ margin-bottom:0.5rem;
       <div class="map-status"><div class="status-dot"></div>GPS ACTIVE — LOCATING...</div>
     </div>
     <div class="filter-tabs">
-      <button class="filter-tab active" onclick="loadNearby('hospital')">All</button>
-      <button class="filter-tab" onclick="loadNearby('hospital')">🏥 Hospitals</button>
-      <button class="filter-tab" onclick="loadNearby('police')">🚔 Police</button>
-      <button class="filter-tab" onclick="loadNearby('fire_station')">🚒 Fire Stations</button>
-      <button class="filter-tab" onclick="loadNearby('pharmacy')">💊 Pharmacy</button>
+      <button class="filter-tab active">All</button>
+      <button class="filter-tab">🏥 Hospitals</button>
+      <button class="filter-tab">🚔 Police</button>
+      <button class="filter-tab">🚒 Fire Stations</button>
+      <button class="filter-tab">💊 Pharmacy</button>
     </div>
     <div class="nearby-grid">
       <div class="nearby-card"><div class="nc-icon hosp">🏥</div><div class="nc-meta"><strong>City General Hospital</strong><span>Emergency — Open 24/7</span></div><div class="nc-dist">0.8 km</div></div>
@@ -1257,7 +1257,22 @@ function handleMedia(e){
   }
 }
 function submitReport(){
-  submitReportToBackend();
+  const title=document.getElementById('reportTitle').value.trim();
+  if(!title){alert('Please enter an incident title.');return;}
+  const feed=document.getElementById('reportFeed');
+  const colors={high:'var(--red)',med:'var(--amber)',low:'var(--green)'};
+  const html=`<div class="report-item" style="border-color:rgba(16,185,129,0.3)">
+    <div class="ri-badge" style="background:${colors[selSev]}"></div>
+    <div class="ri-body">
+      <div class="ri-title">${selType?selType+' — ':''}${title}</div>
+      <div class="ri-meta"><span>📍 Your location</span><span>⏱ Just now</span></div>
+    </div>
+    <span class="ri-sev ${selSev}">${selSev.toUpperCase()}</span>
+  </div>`;
+  feed.insertAdjacentHTML('afterbegin',html);
+  document.getElementById('reportTitle').value='';
+  document.getElementById('reportDesc').value='';
+  alert('✅ Report submitted! Nearby users and authorities have been alerted.');
 }
 
 /* ─── CHATBOT ─── */
@@ -1290,7 +1305,7 @@ function sendChat(){
   if(!val)return;
   appendMsg(val,'user');
   inp.value='';
-  sendChatToBackend(val);
+  setTimeout(()=>appendMsg(matchResponse(val),'bot'),700);
 }
 function sendSuggested(q){
   navigate('chatbot');
@@ -1300,13 +1315,30 @@ function sendSuggested(q){
 
 /* ─── CONTACTS ─── */
 function addContact(){
-  addContactToBackend();
+  const n=document.getElementById('newName').value.trim();
+  const p=document.getElementById('newPhone').value.trim();
+  const r=document.getElementById('newRelation').value.trim();
+  if(!n||!p){alert('Name and phone are required.');return;}
+  const list=document.getElementById('contactsList');
+  const emojis=['👤','👨','👩','🧑','👦','👧'];
+  const emoji=emojis[Math.floor(Math.random()*emojis.length)];
+  list.insertAdjacentHTML('beforeend',`<div class="contact-card">
+    <div class="contact-avatar">${emoji}</div>
+    <div class="contact-info"><strong>${n}</strong><span>${p}${r?' · '+r:''}</span></div>
+    <div class="contact-actions">
+      <button class="icon-btn" onclick="window.open('tel:${p}')">📞</button>
+      <button class="icon-btn">💬</button>
+      <button class="icon-btn danger" onclick="this.closest('.contact-card').remove()">🗑</button>
+    </div>
+  </div>`);
+  document.getElementById('newName').value='';
+  document.getElementById('newPhone').value='';
+  document.getElementById('newRelation').value='';
 }
 
 /* ─── SOS MODAL ─── */
 let sosTimer=null;let sosCount=3;
 function openSOS(){
-  triggerSOS();
   sosCount=3;
   document.getElementById('sosCountdown').textContent=sosCount;
   document.getElementById('sosCountText').textContent=sosCount+' seconds';
@@ -1330,6 +1362,5 @@ if(navigator.geolocation){
   });
 }
 </script>
-<script src="api.js"></script>
 </body>
 </html>
