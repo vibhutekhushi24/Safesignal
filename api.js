@@ -175,6 +175,8 @@ async function loadRecentIncidents() {
         </div>`);
     });
   } catch (err) {
+    const feed = document.getElementById('reportFeed');
+    if (feed) feed.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">No community reports yet. Be the first to report!</div>';
     console.warn('Could not load incidents:', err.message);
   }
 }
@@ -330,6 +332,8 @@ function renderContactCard(c) {
    ─────────────────────────────────────────────────────────────── */
 let userLat = null, userLng = null;
 
+let ssMap = null, userMarker = null, placeMarkers = [];
+
 function initNearby() {
   const grid = document.querySelector('.nearby-grid');
   if (!navigator.geolocation) {
@@ -337,20 +341,69 @@ function initNearby() {
     return;
   }
   if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Getting your location...</div>';
+
+  // Init Leaflet map if not already done
+  const mapEl = document.getElementById('leafletMap');
+  if (mapEl && !ssMap && typeof L !== 'undefined') {
+    ssMap = L.map('leafletMap', { zoomControl: true, attributionControl: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18
+    }).addTo(ssMap);
+    // Dark overlay to match site theme
+    ssMap.getContainer().style.filter = 'brightness(0.85) saturate(0.9)';
+  }
+
   navigator.geolocation.getCurrentPosition(
     pos => {
       userLat = pos.coords.latitude;
       userLng = pos.coords.longitude;
-      // Update the map status label
-      const status = document.querySelector('.map-status');
-      if (status) status.innerHTML = '<div class="status-dot"></div>GPS ACTIVE — LOCATION FOUND';
+
+      // Update status
+      const statusText = document.getElementById('mapStatusText');
+      if (statusText) statusText.textContent = 'GPS ACTIVE — LOCATION FOUND';
+
+      // Place user marker on real map
+      if (ssMap) {
+        ssMap.setView([userLat, userLng], 14);
+        if (userMarker) userMarker.remove();
+        const userIcon = L.divIcon({
+          html: '<div style="font-size:1.8rem;line-height:1;filter:drop-shadow(0 2px 6px rgba(232,0,45,0.7))">📍</div>',
+          iconSize: [30, 30], iconAnchor: [15, 30], className: ''
+        });
+        userMarker = L.marker([userLat, userLng], { icon: userIcon })
+          .addTo(ssMap)
+          .bindPopup('<b>You are here</b>');
+      }
+
       loadNearby('hospital');
     },
     () => {
       if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">⚠️ Location access denied. Please allow GPS and refresh.</div>';
+      const statusText = document.getElementById('mapStatusText');
+      if (statusText) statusText.textContent = 'GPS UNAVAILABLE';
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
+}
+
+function addMapMarkers(places, type) {
+  if (!ssMap) return;
+  // Clear old place markers
+  placeMarkers.forEach(m => m.remove());
+  placeMarkers = [];
+  const emojis = { hospital:'🏥', police:'🚔', fire_station:'🚒', pharmacy:'💊' };
+  const emoji = emojis[type] || '📍';
+  places.slice(0, 10).forEach(place => {
+    if (!place.lat || !place.lng) return;
+    const icon = L.divIcon({
+      html: `<div style="font-size:1.4rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">${emoji}</div>`,
+      iconSize: [24, 24], iconAnchor: [12, 24], className: ''
+    });
+    const marker = L.marker([place.lat, place.lng], { icon })
+      .addTo(ssMap)
+      .bindPopup(`<b>${place.name}</b>${place.addr ? '<br>' + place.addr : ''}`);
+    placeMarkers.push(marker);
+  });
 }
 
 // OSM amenity tag mapping
