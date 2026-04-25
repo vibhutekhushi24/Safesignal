@@ -331,52 +331,105 @@ function renderContactCard(c) {
 let userLat = null, userLng = null;
 
 function initNearby() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    userLat = pos.coords.latitude;
-    userLng = pos.coords.longitude;
-    loadNearby('hospital'); // Default: show hospitals first
-  });
+  const grid = document.querySelector('.nearby-grid');
+  if (!navigator.geolocation) {
+    if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📍 GPS not supported on this device.</div>';
+    return;
+  }
+  if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Getting your location...</div>';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      // Update the map status label
+      const status = document.querySelector('.map-status');
+      if (status) status.innerHTML = '<div class="status-dot"></div>GPS ACTIVE — LOCATION FOUND';
+      loadNearby('hospital');
+    },
+    () => {
+      if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">⚠️ Location access denied. Please allow GPS and refresh.</div>';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
+
+// OSM amenity tag mapping
+const osmTypeMap = {
+  hospital:     'amenity=hospital',
+  police:       'amenity=police',
+  fire_station: 'amenity=fire_station',
+  pharmacy:     'amenity=pharmacy'
+};
 
 async function loadNearby(type = 'hospital') {
   if (!userLat || !userLng) {
-    console.warn('No GPS coordinates yet');
+    initNearby();
     return;
   }
 
   const grid = document.querySelector('.nearby-grid');
-  grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Fetching nearby services...</div>';
+  grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Searching OpenStreetMap...</div>';
+
+  const radius = 5000; // 5km radius
+  const osmTag = osmTypeMap[type] || 'amenity=hospital';
+  const [amenityKey, amenityVal] = osmTag.split('=');
+
+  // Overpass API query — finds nodes and ways with the given amenity tag
+  const query = `
+    [out:json][timeout:15];
+    (
+      node["${amenityKey}"="${amenityVal}"](around:${radius},${userLat},${userLng});
+      way["${amenityKey}"="${amenityVal}"](around:${radius},${userLat},${userLng});
+    );
+    out center 20;
+  `;
 
   try {
-    const results = await apiFetch(`/api/nearby?lat=${userLat}&lng=${userLng}&type=${type}`);
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query
+    });
+    const data = await res.json();
+    const elements = data.elements || [];
 
-    if (!results.length) {
-      grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">No results found nearby.</div>';
+    if (!elements.length) {
+      grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">No results found within 5km.</div>';
       return;
     }
 
-    const icons = { hospital:'🏥', police:'🚔', fire_station:'🚒', pharmacy:'💊' };
-    const classes = { hospital:'hosp', police:'police', fire_station:'fire', pharmacy:'hosp' };
+    const icons    = { hospital:'🏥', police:'🚔', fire_station:'🚒', pharmacy:'💊' };
+    const classes  = { hospital:'hosp', police:'police', fire_station:'fire', pharmacy:'hosp' };
+
+    // Parse results, sort by distance
+    const places = elements.map(el => {
+      const lat  = el.lat  || el.center?.lat;
+      const lng  = el.lon  || el.center?.lon;
+      const name = el.tags?.name || el.tags?.['name:en'] || ('Unnamed ' + type);
+      const addr = [el.tags?.['addr:street'], el.tags?.['addr:city']].filter(Boolean).join(', ') || '';
+      const dist = lat ? getDistanceKm(userLat, userLng, lat, lng) : 999;
+      return { lat, lng, name, addr, dist };
+    }).filter(p => p.lat).sort((a, b) => a.dist - b.dist);
 
     grid.innerHTML = '';
-    results.forEach(place => {
-      const dist = userLat && place.lat
-        ? (getDistanceKm(userLat, userLng, place.lat, place.lng)).toFixed(1) + ' km'
-        : '';
+    places.forEach(place => {
+      const distLabel = place.dist < 1
+        ? (place.dist * 1000).toFixed(0) + ' m'
+        : place.dist.toFixed(1) + ' km';
+      const safeName = place.name.replace(/'/g, "\\'");
       grid.insertAdjacentHTML('beforeend', `
-        <div class="nearby-card" onclick="openMaps(${place.lat},${place.lng},'${place.name}')">
+        <div class="nearby-card" onclick="openMaps(${place.lat},${place.lng},'${safeName}')">
           <div class="nc-icon ${classes[type] || 'hosp'}">${icons[type] || '📍'}</div>
           <div class="nc-meta">
             <strong>${place.name}</strong>
-            <span>${place.address}</span>
+            <span>${place.addr || 'Tap for directions'}</span>
           </div>
-          ${dist ? `<div class="nc-dist">${dist}</div>` : ''}
+          <div class="nc-dist">${distLabel}</div>
         </div>`);
     });
+
   } catch (err) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">⚠️ Could not load nearby services.</div>';
-    console.error('Nearby error:', err);
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">⚠️ Could not load nearby services. Check internet connection.</div>';
+    console.error('Nearby (Overpass) error:', err);
   }
 }
 
