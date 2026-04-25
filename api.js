@@ -384,12 +384,26 @@ async function loadNearby(type = 'hospital') {
     out center 20;
   `;
 
+  const mirrors = [
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+    'https://overpass-api.de/api/interpreter'
+  ];
+  let data = null;
+  for (const mirror of mirrors) {
+    try {
+      const res = await fetch(mirror, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(query)
+      });
+      if (!res.ok) continue;
+      data = await res.json();
+      if (data && data.elements) break;
+    } catch (e) { continue; }
+  }
   try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: query
-    });
-    const data = await res.json();
+    if (!data || !data.elements) throw new Error('All mirrors failed');
     const elements = data.elements || [];
 
     if (!elements.length) {
