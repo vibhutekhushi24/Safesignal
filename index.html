@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SafeSignal — Rapid Crisis Response</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -792,16 +794,8 @@ margin-bottom:0.5rem;
     <p>Emergency services within your area. Tap any location to get directions.</p>
   </div>
   <div class="nearby-container">
-    <div class="map-placeholder">
-      <div class="map-grid"></div>
-      <div class="map-pin user">📍</div>
-      <div class="map-pin h1">🏥</div>
-      <div class="map-pin h2">🏥</div>
-      <div class="map-pin p1">🚔</div>
-      <div class="map-pin p2">🚔</div>
-      <div class="map-pin f1">🚒</div>
-      <div class="map-status"><div class="status-dot"></div>GPS ACTIVE — LOCATING...</div>
-    </div>
+    <div id="leafletMap" style="width:100%;height:320px;border-radius:18px;border:1px solid rgba(255,255,255,0.07);margin-bottom:2rem;z-index:1;overflow:hidden;"></div>
+    <div class="map-status" id="mapStatus" style="position:relative;bottom:auto;left:auto;margin-bottom:1rem;display:inline-flex;"><div class="status-dot"></div><span id="mapStatusText">GPS ACTIVE — LOCATING...</span></div>
     <div class="filter-tabs">
       <button class="filter-tab active" onclick="filterNearby(this,'hospital')">All</button>
       <button class="filter-tab" onclick="filterNearby(this,'hospital')">🏥 Hospitals</button>
@@ -998,40 +992,7 @@ margin-bottom:0.5rem;
 
     <div class="recent-reports-section">
       <h3>RECENT REPORTS</h3>
-      <div class="report-feed" id="reportFeed">
-        <div class="report-item">
-          <div class="ri-badge" style="background:var(--red)"></div>
-          <div class="ri-body">
-            <div class="ri-title">Heavy flooding near Peth Road</div>
-            <div class="ri-meta"><span>📍 2.1 km away</span><span>⏱ 12 min ago</span></div>
-          </div>
-          <span class="ri-sev high">HIGH</span>
-        </div>
-        <div class="report-item">
-          <div class="ri-badge" style="background:var(--amber)"></div>
-          <div class="ri-body">
-            <div class="ri-title">Power lines down — MG Road junction</div>
-            <div class="ri-meta"><span>📍 0.8 km away</span><span>⏱ 34 min ago</span></div>
-          </div>
-          <span class="ri-sev med">MED</span>
-        </div>
-        <div class="report-item">
-          <div class="ri-badge" style="background:var(--orange)"></div>
-          <div class="ri-body">
-            <div class="ri-title">Vehicle fire — Expressway KM 14</div>
-            <div class="ri-meta"><span>📍 5.4 km away</span><span>⏱ 1 hr ago</span></div>
-          </div>
-          <span class="ri-sev high">HIGH</span>
-        </div>
-        <div class="report-item">
-          <div class="ri-badge" style="background:var(--green)"></div>
-          <div class="ri-body">
-            <div class="ri-title">Stray animal rescue needed — Sector 7</div>
-            <div class="ri-meta"><span>📍 1.3 km away</span><span>⏱ 2 hr ago</span></div>
-          </div>
-          <span class="ri-sev low">LOW</span>
-        </div>
-      </div>
+      <div class="report-feed" id="reportFeed"><div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Loading community reports...</div></div>
     </div>
   </div>
 </section>
