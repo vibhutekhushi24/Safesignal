@@ -978,7 +978,7 @@ margin-bottom:0.5rem;
     </div>
 
     <button class="gemini-generate-btn" id="geminiGenBtn" onclick="generateGeminiTip()">
-      ✨ GET AI SAFETY GUIDE
+      ✨ ASK GEMINI AI
     </button>
 
     <div class="gemini-result" id="geminiResult">
@@ -1245,7 +1245,7 @@ async function askGeminiGuide(btn, topic) {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1286,64 +1286,10 @@ function selectTopic(btn, topic) {
   document.getElementById('geminiResult').style.display = 'none';
 }
 
-async function generateGeminiTip() {
-  const btn = document.getElementById('geminiGenBtn');
-  const result = document.getElementById('geminiResult');
-  const resultText = document.getElementById('geminiResultText');
-  const resultTopic = document.getElementById('geminiResultTopic');
-
-  btn.disabled = true;
-  btn.innerHTML = '⏳ GENERATING...';
-  result.style.display = 'block';
-  resultTopic.textContent = selectedTopic.replace(' in India','').replace(' steps','').toUpperCase();
-  resultText.innerHTML = '<div class="gemini-loading"><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div>&nbsp; Gemini is thinking...</div>';
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [{ text: `You are an emergency safety expert for India. Give 5 clear numbered safety tips for "${selectedTopic}". Each tip must be 1-2 sentences. Be direct and practical. Include Indian helpline numbers where relevant (Police:100, Ambulance:108, Fire:101).` }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500
-          }
-        })
-      }
-    );
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || 'API error');
-    }
-
-    const data = await res.json();
-    const tip = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (tip) {
-      const formatted = tip
-        .split('\n')
-        .filter(l => l.trim())
-        .map(l => `<div style="margin-bottom:0.6rem;line-height:1.6">${l}</div>`)
-        .join('');
-      resultText.innerHTML = formatted;
-    } else {
-      throw new Error('Empty response');
-    }
-  } catch (e) {
-    console.error('Gemini error:', e);
-    resultText.innerHTML = `<div style="color:var(--muted)">⚠️ ${e.message || 'Could not connect. Try again.'}</div>`;
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '✨ GET AI SAFETY GUIDE';
+function generateGeminiTip() {
+  const prompt = `Give me 5 emergency safety tips for ${selectedTopic}. Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.`;
+  const url = `https://gemini.google.com/app?q=${encodeURIComponent(prompt)}`;
+  window.open(url, '_blank');
 }
 
 /* ─── WAKE UP RENDER BACKEND (free tier sleeps after 15min) ─── */
@@ -1501,7 +1447,7 @@ async function loadGeminiTip() {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
