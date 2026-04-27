@@ -957,36 +957,37 @@ margin-bottom:0.5rem;
   <div class="page-hero">
     <div class="section-label">GOOGLE GEMINI AI</div>
     <h2>SAFETY GUIDE</h2>
-    <p>AI-powered emergency safety guidance. Select a topic and get real-time step-by-step help from Google Gemini.</p>
+    <p>Select an emergency topic and get instant AI-powered guidance from Google Gemini.</p>
   </div>
   <div class="gemini-container">
 
-    <div class="gemini-header" style="margin-bottom:1.5rem">
-      <div class="gemini-powered"><span>✨ Powered by Google Gemini 1.5 Flash</span></div>
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;background:linear-gradient(90deg,rgba(66,133,244,0.15),rgba(52,168,83,0.15));border:1px solid rgba(66,133,244,0.3);font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px">
+        <span style="background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">✨ Powered by Google Gemini</span>
+      </div>
     </div>
 
     <div class="section-label" style="margin-bottom:0.75rem">SELECT EMERGENCY TYPE</div>
-    <div class="gemini-topic-grid">
+    <div class="gemini-topic-grid" id="topicGrid">
       <button class="topic-btn selected" onclick="selectTopic(this,'Flood Survival in India')">🌊 Flood</button>
       <button class="topic-btn" onclick="selectTopic(this,'Fire Emergency in India')">🔥 Fire</button>
       <button class="topic-btn" onclick="selectTopic(this,'Earthquake Safety in India')">🏚️ Earthquake</button>
-      <button class="topic-btn" onclick="selectTopic(this,'CPR and First Aid steps')">🩺 CPR & First Aid</button>
+      <button class="topic-btn" onclick="selectTopic(this,'CPR and First Aid')">🩺 CPR & First Aid</button>
       <button class="topic-btn" onclick="selectTopic(this,'Road Accident Response in India')">🚗 Road Accident</button>
       <button class="topic-btn" onclick="selectTopic(this,'Women Safety in India')">👩 Women Safety</button>
       <button class="topic-btn" onclick="selectTopic(this,'Cyclone Preparedness in India')">🌀 Cyclone</button>
       <button class="topic-btn" onclick="selectTopic(this,'Heat Stroke Prevention in India')">☀️ Heat Stroke</button>
     </div>
 
-    <a class="gemini-generate-btn" id="geminiGenBtn" href="#" target="_blank" rel="noopener"
-       onclick="updateGeminiLink(this); return true;"
-       style="display:block;text-align:center;text-decoration:none;">
-      ✨ ASK GEMINI AI
-    </a>
-
-    <div class="gemini-result" id="geminiResult">
-      <div class="gemini-result-label">✨ GOOGLE GEMINI AI · LIVE SAFETY GUIDANCE</div>
-      <div class="gemini-result-topic" id="geminiResultTopic"></div>
-      <div class="gemini-result-text" id="geminiResultText"></div>
+    <div style="margin-top:1.5rem;background:var(--surface);border:1px solid rgba(66,133,244,0.3);border-radius:var(--r-lg);padding:1.2rem;text-align:center">
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;font-family:var(--font-mono);letter-spacing:1px">TAP BELOW TO OPEN GEMINI</div>
+      <a id="geminiLink" 
+         href="https://gemini.google.com/app?q=Give+me+5+emergency+safety+tips+for+Flood+Survival+in+India.+Include+Indian+helpline+numbers+Police+100+Ambulance+108+Fire+101"
+         target="_blank"
+         style="display:block;padding:14px;border-radius:var(--r);background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;font-family:var(--font-disp);font-size:1.1rem;letter-spacing:2px;text-decoration:none;margin-bottom:0.75rem">
+        ✨ ASK GEMINI AI
+      </a>
+      <div style="font-size:0.75rem;color:var(--muted)">Opens Google Gemini with your selected topic</div>
     </div>
 
   </div>
@@ -1284,18 +1285,26 @@ function selectTopic(btn, topic) {
   document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   selectedTopic = topic;
-  // Hide previous result when topic changes
   document.getElementById('geminiResult').style.display = 'none';
+  // Update link href
+  const link = document.getElementById('geminiGenBtn');
+  if(link) {
+    const prompt = "Give me 5 emergency safety tips for " + topic + " in India. Include helpline numbers: Police 100, Ambulance 108, Fire 101.";
+    link.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
+  }
 }
 
-function generateGeminiTip() {
-  const prompt = "Give me 5 emergency safety tips for " + selectedTopic + ". Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.";
-  window.location.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
+function openGemini() {
+  var prompt = "Give me 5 emergency safety tips for " + selectedTopic + ". Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.";
+  var url = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
+  window.open(url, '_blank');
 }
-function updateGeminiLink(el) {
-  const prompt = `Give me 5 emergency safety tips for ${selectedTopic}. Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.`;
-  el.href = `https://gemini.google.com/app?q=${encodeURIComponent(prompt)}`;
+function updateLink(el) {
+  const prompt = "Give me 5 emergency safety tips for " + selectedTopic + " in India. Include helpline numbers: Police 100, Ambulance 108, Fire 101.";
+  el.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
 }
+function generateGeminiTip() { openGemini(); }
+function updateGeminiLink(el) {}
 
 /* ─── WAKE UP RENDER BACKEND (free tier sleeps after 15min) ─── */
 fetch('https://safesignal-backend-sasp.onrender.com/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'ping'})}).catch(()=>{});
