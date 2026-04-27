@@ -977,9 +977,11 @@ margin-bottom:0.5rem;
       <button class="topic-btn" onclick="selectTopic(this,'Heat Stroke Prevention in India')">☀️ Heat Stroke</button>
     </div>
 
-    <button class="gemini-generate-btn" id="geminiGenBtn" onclick="generateGeminiTip()">
+    <a class="gemini-generate-btn" id="geminiGenBtn" href="#" target="_blank" rel="noopener"
+       onclick="updateGeminiLink(this); return true;"
+       style="display:block;text-align:center;text-decoration:none;">
       ✨ ASK GEMINI AI
-    </button>
+    </a>
 
     <div class="gemini-result" id="geminiResult">
       <div class="gemini-result-label">✨ GOOGLE GEMINI AI · LIVE SAFETY GUIDANCE</div>
@@ -1287,9 +1289,12 @@ function selectTopic(btn, topic) {
 }
 
 function generateGeminiTip() {
+  const prompt = "Give me 5 emergency safety tips for " + selectedTopic + ". Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.";
+  window.location.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
+}
+function updateGeminiLink(el) {
   const prompt = `Give me 5 emergency safety tips for ${selectedTopic}. Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.`;
-  const url = `https://gemini.google.com/app?q=${encodeURIComponent(prompt)}`;
-  window.open(url, '_blank');
+  el.href = `https://gemini.google.com/app?q=${encodeURIComponent(prompt)}`;
 }
 
 /* ─── WAKE UP RENDER BACKEND (free tier sleeps after 15min) ─── */
