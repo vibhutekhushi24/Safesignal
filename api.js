@@ -38,7 +38,7 @@ async function apiFetch(path, options = {}) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   1. AI CHAT  —  replaces the fake matchResponse() function
+   1. AI CHAT  —  powered by Google Gemini 1.5 Flash
    ═══════════════════════════════════════════════════════════════
    HOW TO WIRE IT:
    In your existing sendChat() function, replace:
@@ -46,36 +46,43 @@ async function apiFetch(path, options = {}) {
    with:
      sendChatToBackend(val);
    ─────────────────────────────────────────────────────────────── */
+const GEMINI_API_KEY = 'AIzaSyB3XxE0oEUn85fC881rXIXOsqpHPeJyzrc';
+
 async function sendChatToBackend(userMessage) {
   const msgs = document.getElementById('chatMessages');
   const typingId = 'typing-' + Date.now();
   msgs.innerHTML += `<div class="msg bot" id="${typingId}">
-    <div class="msg-bubble" style="color:var(--muted);font-style:italic">⏳ Connecting to AI... (first message may take ~15s)</div>
+    <div class="msg-bubble" style="color:var(--muted);font-style:italic">⏳ Gemini AI is thinking...</div>
   </div>`;
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 35000);
-    const res = await fetch(BASE_URL + '/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMessage }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are SafeSignal's emergency AI assistant for Indian users.
+Give clear, calm, step-by-step guidance. Keep responses concise and actionable.
+User emergency query: ${userMessage}`
+            }]
+          }]
+        })
+      }
+    );
+
     const data = await res.json();
     document.getElementById(typingId)?.remove();
-    if (!res.ok) throw new Error(data.error || 'Request failed');
-    appendMsg(data.reply, 'bot');
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) throw new Error('No response from Gemini');
+    appendMsg(reply, 'bot');
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    if (err.name === 'AbortError') {
-      appendMsg('⚠️ AI is waking up (Render free tier). Please send your message again in a few seconds.', 'bot');
-    } else {
-      appendMsg('⚠️ Could not reach AI. Check your connection and try again.', 'bot');
-    }
-    console.error('Chat error:', err);
+    appendMsg('⚠️ AI unavailable. Please try again.', 'bot');
+    console.error('Gemini error:', err);
   }
 }
 
@@ -190,7 +197,6 @@ async function loadRecentIncidents() {
    ─────────────────────────────────────────────────────────────── */
 function triggerSOS() {
   if (!navigator.geolocation) {
-    // Still log SOS without coordinates
     sendSOSToBackend(null, null);
     return;
   }
@@ -213,28 +219,22 @@ async function sendSOSToBackend(lat, lng) {
     console.log('✅ SOS triggered —', data.contacts_notified, 'contact(s) notified');
   } catch (err) {
     console.error('SOS backend error:', err.message);
-    // SOS still shows UI even if backend fails — never block the user
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════
    4. EMERGENCY CONTACTS
-   ═══════════════════════════════════════════════════════════════
-   HOW TO WIRE IT:
-   Replace your addContact() function body with:
-     addContactToBackend();
-   And call loadContacts() once on page load.
-   ─────────────────────────────────────────────────────────────── */
+   ═══════════════════════════════════════════════════════════════ */
 async function loadContacts() {
   const userId = Auth.getUserId();
-  if (!userId) return; // Not logged in — keep showing hardcoded contacts
+  if (!userId) return;
 
   try {
     const contacts = await apiFetch(`/api/contacts/${userId}`);
     const list     = document.getElementById('contactsList');
     if (!contacts.length) return;
 
-    list.innerHTML = ''; // Clear mock contacts
+    list.innerHTML = '';
     contacts.forEach(c => renderContactCard(c));
   } catch (err) {
     console.warn('Could not load contacts:', err.message);
@@ -269,7 +269,6 @@ async function addContactToBackend() {
     document.getElementById('newRelation').value = '';
 
   } catch (err) {
-    // Fallback: add locally even if backend fails
     const list   = document.getElementById('contactsList');
     const emojis = ['👤','👨','👩','🧑','👦','👧'];
     const emoji  = emojis[Math.floor(Math.random() * emojis.length)];
@@ -294,7 +293,7 @@ async function deleteContact(id, cardEl) {
     await apiFetch(`/api/contacts/${id}`, { method: 'DELETE' });
     cardEl.remove();
   } catch (err) {
-    cardEl.remove(); // Remove from UI anyway
+    cardEl.remove();
     console.warn('Delete contact error:', err.message);
   }
 }
@@ -324,14 +323,9 @@ function renderContactCard(c) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   5. NEARBY SERVICES  —  replaces hardcoded nearby cards
-   ═══════════════════════════════════════════════════════════════
-   HOW TO WIRE IT:
-   In your filter-tab buttons, add onclick="filterNearby('hospital')" etc.
-   It auto-loads on page open to 'nearby' section.
-   ─────────────────────────────────────────────────────────────── */
+   5. NEARBY SERVICES
+   ═══════════════════════════════════════════════════════════════ */
 let userLat = null, userLng = null;
-
 let ssMap = null, userMarker = null, placeMarkers = [];
 
 function initNearby() {
@@ -342,14 +336,12 @@ function initNearby() {
   }
   if (grid) grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Getting your location...</div>';
 
-  // Init Leaflet map if not already done
   const mapEl = document.getElementById('leafletMap');
   if (mapEl && !ssMap && typeof L !== 'undefined') {
     ssMap = L.map('leafletMap', { zoomControl: true, attributionControl: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18
     }).addTo(ssMap);
-    // Dark overlay to match site theme
     ssMap.getContainer().style.filter = 'brightness(0.85) saturate(0.9)';
   }
 
@@ -358,11 +350,9 @@ function initNearby() {
       userLat = pos.coords.latitude;
       userLng = pos.coords.longitude;
 
-      // Update status
       const statusText = document.getElementById('mapStatusText');
       if (statusText) statusText.textContent = 'GPS ACTIVE — LOCATION FOUND';
 
-      // Place user marker on real map
       if (ssMap) {
         ssMap.setView([userLat, userLng], 14);
         if (userMarker) userMarker.remove();
@@ -388,7 +378,6 @@ function initNearby() {
 
 function addMapMarkers(places, type) {
   if (!ssMap) return;
-  // Clear old place markers
   placeMarkers.forEach(m => m.remove());
   placeMarkers = [];
   const emojis = { hospital:'🏥', police:'🚔', fire_station:'🚒', pharmacy:'💊' };
@@ -406,7 +395,6 @@ function addMapMarkers(places, type) {
   });
 }
 
-// OSM amenity tag mapping
 const osmTypeMap = {
   hospital:     'amenity=hospital',
   police:       'amenity=police',
@@ -423,11 +411,10 @@ async function loadNearby(type = 'hospital') {
   const grid = document.querySelector('.nearby-grid');
   grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:1rem">📡 Searching OpenStreetMap...</div>';
 
-  const radius = 5000; // 5km radius
+  const radius = 5000;
   const osmTag = osmTypeMap[type] || 'amenity=hospital';
   const [amenityKey, amenityVal] = osmTag.split('=');
 
-  // Overpass API query — finds nodes and ways with the given amenity tag
   const query = `
     [out:json][timeout:15];
     (
@@ -455,6 +442,7 @@ async function loadNearby(type = 'hospital') {
       if (data && data.elements) break;
     } catch (e) { continue; }
   }
+
   try {
     if (!data || !data.elements) throw new Error('All mirrors failed');
     const elements = data.elements || [];
@@ -467,7 +455,6 @@ async function loadNearby(type = 'hospital') {
     const icons    = { hospital:'🏥', police:'🚔', fire_station:'🚒', pharmacy:'💊' };
     const classes  = { hospital:'hosp', police:'police', fire_station:'fire', pharmacy:'hosp' };
 
-    // Parse results, sort by distance
     const places = elements.map(el => {
       const lat  = el.lat  || el.center?.lat;
       const lng  = el.lon  || el.center?.lon;
@@ -507,8 +494,6 @@ function openMaps(lat, lng, name) {
 /* ═══════════════════════════════════════════════════════════════
    UTILITY FUNCTIONS
    ═══════════════════════════════════════════════════════════════ */
-
-// Human-readable time ago (e.g. "12 min ago")
 function timeAgo(isoString) {
   if (!isoString) return 'recently';
   const diff = (Date.now() - new Date(isoString)) / 1000;
@@ -518,7 +503,6 @@ function timeAgo(isoString) {
   return Math.floor(diff / 86400) + ' days ago';
 }
 
-// Haversine distance in km between two lat/lng points
 function getDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -529,10 +513,10 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   AUTO-INIT — runs when the page loads
+   AUTO-INIT
    ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  loadRecentIncidents(); // Populate report feed from DB
-  loadContacts();        // Load contacts if logged in
-  initNearby();          // Start GPS for nearby section
+  loadRecentIncidents();
+  loadContacts();
+  initNearby();
 });
