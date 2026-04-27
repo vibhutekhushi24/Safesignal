@@ -26,142 +26,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);overflo
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--red);border-radius:4px}
 
-
-/* ─── GEMINI SAFETY TIP ─── */
-.gemini-tip-card{
-  background:linear-gradient(135deg,rgba(26,115,232,0.08),rgba(52,168,83,0.08));
-  border:1px solid rgba(26,115,232,0.25);
-  border-radius:var(--r-lg);
-  padding:1.2rem 1.4rem;
-  margin:1.5rem 0;
-  position:relative;
-  overflow:hidden;
-}
-.gemini-tip-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);
-}
-.gemini-tip-header{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--font-mono);font-size:0.65rem;
-  color:var(--muted);letter-spacing:1px;margin-bottom:0.6rem;
-}
-.gemini-badge{
-  background:linear-gradient(90deg,#4285f4,#34a853);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  font-weight:700;font-size:0.7rem;
-}
-.gemini-tip-text{
-  font-size:0.92rem;color:var(--text);line-height:1.6;font-style:italic;
-}
-.gemini-tip-loading{
-  color:var(--muted);font-size:0.85rem;
-  display:flex;align-items:center;gap:8px;
-}
-.gemini-dot{width:6px;height:6px;border-radius:50%;background:#4285f4;
-  animation:gemini-pulse 1s ease-in-out infinite;}
-.gemini-dot:nth-child(2){animation-delay:0.2s;background:#34a853;}
-.gemini-dot:nth-child(3){animation-delay:0.4s;background:#fbbc04;}
-@keyframes gemini-pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
-
-
-/* ─── GEMINI TIPS ─────────────────────── */
-.gemini-container{padding:0 1rem 5rem;max-width:700px;margin:0 auto}
-.gemini-header{text-align:center;margin-bottom:2rem}
-.gemini-logo{font-size:2.5rem;margin-bottom:0.5rem}
-.gemini-powered{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:4px 14px;border-radius:100px;
-  background:linear-gradient(90deg,rgba(66,133,244,0.15),rgba(52,168,83,0.15));
-  border:1px solid rgba(66,133,244,0.3);
-  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;
-  margin-bottom:1rem;
-}
-.gemini-powered span{
-  background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;
-}
-.gemini-topic-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;margin-bottom:1.5rem;
-}
-.topic-btn{
-  background:var(--surface);border:1px solid var(--border);
-  color:var(--muted);font-size:0.85rem;font-weight:500;
-  padding:12px 10px;border-radius:var(--r);cursor:pointer;
-  transition:all 0.2s;text-align:center;font-family:var(--font-body);
-}
-.topic-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
-.topic-btn.selected{color:#4285f4;border-color:rgba(66,133,244,0.5);background:rgba(66,133,244,0.08)}
-.gemini-generate-btn{
-  width:100%;padding:14px;border:none;border-radius:var(--r);cursor:pointer;
-  font-family:var(--font-disp);font-size:1.1rem;letter-spacing:2px;
-  background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;
-  margin-bottom:1.5rem;transition:all 0.2s;
-}
-.gemini-generate-btn:hover{opacity:0.9;transform:translateY(-1px)}
-.gemini-generate-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
-.gemini-result{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r-lg);padding:1.5rem;
-  display:none;position:relative;overflow:hidden;
-}
-.gemini-result::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);
-}
-.gemini-result-label{
-  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;
-  color:var(--muted);margin-bottom:0.75rem;
-}
-.gemini-result-topic{
-  font-family:var(--font-disp);font-size:1.3rem;letter-spacing:2px;
-  color:var(--text);margin-bottom:0.75rem;
-}
-.gemini-result-text{
-  font-size:0.95rem;line-height:1.75;color:var(--text);
-}
-.gemini-loading{
-  display:flex;align-items:center;gap:8px;color:var(--muted);font-size:0.85rem;
-}
-.g-dot{width:7px;height:7px;border-radius:50%;animation:gpulse 0.9s ease-in-out infinite;}
-.g-dot:nth-child(1){background:#4285f4;}
-.g-dot:nth-child(2){background:#34a853;animation-delay:0.15s;}
-.g-dot:nth-child(3){background:#fbbc04;animation-delay:0.3s;}
-.g-dot:nth-child(4){background:#ea4335;animation-delay:0.45s;}
-@keyframes gpulse{0%,100%{opacity:0.3;transform:scale(0.7)}50%{opacity:1;transform:scale(1.2)}}
-
-
-/* ─── GEMINI GUIDE BUTTON ─── */
-.ask-gemini-wrap{margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem}
-.ask-gemini-btn{
-  display:flex;align-items:center;gap:8px;
-  background:linear-gradient(135deg,rgba(66,133,244,0.1),rgba(52,168,83,0.1));
-  border:1px solid rgba(66,133,244,0.3);
-  color:var(--text);font-size:0.85rem;font-weight:500;
-  padding:10px 16px;border-radius:var(--r);cursor:pointer;
-  font-family:var(--font-body);transition:all 0.2s;width:100%;
-}
-.ask-gemini-btn:hover{background:linear-gradient(135deg,rgba(66,133,244,0.2),rgba(52,168,83,0.2))}
-.ask-gemini-btn:disabled{opacity:0.6;cursor:not-allowed}
-.gemini-guide-result{
-  margin-top:0.75rem;
-  background:var(--surface2);
-  border:1px solid rgba(66,133,244,0.2);
-  border-radius:var(--r);padding:1rem;
-  font-size:0.88rem;line-height:1.75;
-  display:none;position:relative;overflow:hidden;
-}
-.gemini-guide-result::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);
-}
-.gemini-guide-badge{
-  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:1px;
-  margin-bottom:0.5rem;
-  background:linear-gradient(90deg,#4285f4,#34a853);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;
-}
-
 /* ─── NAV ─────────────────────────────── */
 nav{
 position:fixed;top:0;left:0;right:0;z-index:500;
@@ -822,7 +686,7 @@ margin-bottom:0.5rem;
     <span class="bn-icon">📍</span><span class="bn-label">Nearby</span>
   </button>
   <button class="bn-item" onclick="navigate('guide',this)" data-section="guide">
-    <span class="bn-icon">✨</span><span class="bn-label">Guide</span>
+    <span class="bn-icon">📋</span><span class="bn-label">Guide</span>
   </button>
   <button class="bn-item" onclick="navigate('report',this)" data-section="report">
     <span class="bn-icon">🚨</span><span class="bn-label">Report</span>
@@ -830,9 +694,7 @@ margin-bottom:0.5rem;
   <button class="bn-item" onclick="navigate('chatbot',this)" data-section="chatbot">
     <span class="bn-icon">🤖</span><span class="bn-label">AI Chat</span>
   </button>
-
 </div>
-
 
 <!-- ══ HOME ══════════════════════════════ -->
 <section id="home" class="active">
@@ -955,45 +817,112 @@ margin-bottom:0.5rem;
 <!-- ══ GUIDE ═════════════════════════════ -->
 <section id="guide">
   <div class="page-hero">
-    <div class="section-label">GOOGLE GEMINI AI</div>
+    <div class="section-label">OFFLINE READY</div>
     <h2>SAFETY GUIDE</h2>
-    <p>Select an emergency topic and get instant AI-powered guidance from Google Gemini.</p>
+    <p>Step-by-step emergency protocols. Available even without internet.</p>
   </div>
-  <div class="gemini-container">
-
-    <div style="text-align:center;margin-bottom:1.5rem">
-      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;background:linear-gradient(90deg,rgba(66,133,244,0.15),rgba(52,168,83,0.15));border:1px solid rgba(66,133,244,0.3);font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px">
-        <span style="background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04,#ea4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">✨ Powered by Google Gemini</span>
+  <div class="guide-container">
+    <div class="guide-search"><span>🔍</span><input type="text" placeholder="Search guides — fire, flood, CPR..." oninput="filterGuide(this.value)"/></div>
+    <div class="guide-accordion" id="guideAccordion">
+      <div class="accordion-item" data-tags="fire burn smoke">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.2)">🔥</div>
+          <span class="acc-title">Fire Emergency Protocol</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Activate the nearest fire alarm immediately and call 101.</span></li>
+            <li><div class="step-num">2</div><span>Alert everyone in the building. Do NOT use elevators.</span></li>
+            <li><div class="step-num">3</div><span>Crawl low under smoke — air is cleaner near the floor.</span></li>
+            <li><div class="step-num">4</div><span>Feel doors before opening — if hot, use alternate exit route.</span></li>
+            <li><div class="step-num">5</div><span>Meet at designated assembly point and await fire services.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="earthquake seismic tremor">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2)">🌍</div>
+          <span class="acc-title">Earthquake — Drop, Cover, Hold</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>DROP to hands and knees immediately.</span></li>
+            <li><div class="step-num">2</div><span>Take COVER under a sturdy desk, table, or against an interior wall.</span></li>
+            <li><div class="step-num">3</div><span>HOLD ON until shaking stops. Protect your head and neck.</span></li>
+            <li><div class="step-num">4</div><span>After shaking: check for gas leaks, exit carefully via stairs only.</span></li>
+            <li><div class="step-num">5</div><span>Stay away from damaged buildings. Expect aftershocks.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="flood water storm rain">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.2)">🌊</div>
+          <span class="acc-title">Flood Response Actions</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Move immediately to higher ground — never wait for official evacuation orders.</span></li>
+            <li><div class="step-num">2</div><span>Do NOT walk or drive through floodwater — 15cm can knock you down.</span></li>
+            <li><div class="step-num">3</div><span>Turn off electricity at the main breaker before water enters.</span></li>
+            <li><div class="step-num">4</div><span>Secure important documents in waterproof bags. Take emergency kit.</span></li>
+            <li><div class="step-num">5</div><span>Call NDRF Helpline: 1078 for rescue assistance.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="cpr heart first aid medical">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2)">🩺</div>
+          <span class="acc-title">CPR — Adult First Aid</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Check responsiveness — tap shoulders and shout "Are you okay?"</span></li>
+            <li><div class="step-num">2</div><span>Call 108 (Ambulance) immediately or have someone call while you begin CPR.</span></li>
+            <li><div class="step-num">3</div><span>Place heel of hand on centre of chest. Interlock fingers.</span></li>
+            <li><div class="step-num">4</div><span>Push hard and fast — 100-120 compressions per minute, 5–6cm depth.</span></li>
+            <li><div class="step-num">5</div><span>After 30 compressions, give 2 rescue breaths if trained. Repeat cycle.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="women safety harassment threat">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.2)">🛡️</div>
+          <span class="acc-title">Women's Personal Safety</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Trust your instincts — if something feels wrong, act immediately.</span></li>
+            <li><div class="step-num">2</div><span>Call Women Helpline 1091 or Nirbhaya Helpline 181.</span></li>
+            <li><div class="step-num">3</div><span>Share live location with trusted contact using SafeSignal's Live Location feature.</span></li>
+            <li><div class="step-num">4</div><span>Move toward crowded public places, avoid isolated areas.</span></li>
+            <li><div class="step-num">5</div><span>Use the SOS button to trigger a silent alert to your emergency contacts.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item" data-tags="accident road car vehicle">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-icon" style="background:rgba(232,0,45,0.12);border:1px solid rgba(232,0,45,0.2)">🚗</div>
+          <span class="acc-title">Road Accident Response</span>
+          <span class="acc-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <ul class="step-list">
+            <li><div class="step-num">1</div><span>Call 108 for ambulance and 100 for police immediately.</span></li>
+            <li><div class="step-num">2</div><span>Do NOT move injured persons unless there is immediate danger (fire/flooding).</span></li>
+            <li><div class="step-num">3</div><span>Turn on hazard lights. Place warning triangle 50m behind vehicle.</span></li>
+            <li><div class="step-num">4</div><span>Control bleeding with firm pressure using clean cloth.</span></li>
+            <li><div class="step-num">5</div><span>Keep injured persons warm and conscious until help arrives.</span></li>
+          </ul>
+        </div>
       </div>
     </div>
-
-    <div class="section-label" style="margin-bottom:0.75rem">SELECT EMERGENCY TYPE</div>
-    <div class="gemini-topic-grid" id="topicGrid">
-      <button class="topic-btn selected" onclick="selectTopic(this,'Flood Survival in India')">🌊 Flood</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Fire Emergency in India')">🔥 Fire</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Earthquake Safety in India')">🏚️ Earthquake</button>
-      <button class="topic-btn" onclick="selectTopic(this,'CPR and First Aid')">🩺 CPR & First Aid</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Road Accident Response in India')">🚗 Road Accident</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Women Safety in India')">👩 Women Safety</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Cyclone Preparedness in India')">🌀 Cyclone</button>
-      <button class="topic-btn" onclick="selectTopic(this,'Heat Stroke Prevention in India')">☀️ Heat Stroke</button>
-    </div>
-
-    <div style="margin-top:1.5rem;background:var(--surface);border:1px solid rgba(66,133,244,0.3);border-radius:var(--r-lg);padding:1.2rem;text-align:center">
-      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;font-family:var(--font-mono);letter-spacing:1px">TAP BELOW TO OPEN GEMINI</div>
-      <a id="geminiLink" 
-         href="https://gemini.google.com/app?q=Give+me+5+emergency+safety+tips+for+Flood+Survival+in+India.+Include+Indian+helpline+numbers+Police+100+Ambulance+108+Fire+101"
-         target="_blank"
-         style="display:block;padding:14px;border-radius:var(--r);background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;font-family:var(--font-disp);font-size:1.1rem;letter-spacing:2px;text-decoration:none;margin-bottom:0.75rem">
-        ✨ ASK GEMINI AI
-      </a>
-      <div style="font-size:0.75rem;color:var(--muted)">Opens Google Gemini with your selected topic</div>
-    </div>
-
   </div>
 </section>
-
-<!-- ══ REPORT
 
 <!-- ══ REPORT ════════════════════════════ -->
 <section id="report">
@@ -1232,80 +1161,6 @@ const tt=document.getElementById('tickerTrack');
   tt.innerHTML+=`<div class="ticker-item"><div class="ticker-dot ${i.dot}"></div>${i.text}</div>`;
 });
 
-
-
-/* ─── GEMINI GUIDE AI ─── */
-async function askGeminiGuide(btn, topic) {
-  const GEMINI_API_KEY = 'AIzaSyAhlYwSnIzoeWXA76h9UtVKaVfzLrSFhXI'; // 🔑 Paste your key here
-  const wrap = btn.closest('.ask-gemini-wrap');
-  const resultBox = wrap.querySelector('.gemini-guide-result');
-  const resultText = wrap.querySelector('.gemini-guide-text');
-
-  btn.disabled = true;
-  btn.innerHTML = '⏳ &nbsp;Gemini is thinking...';
-  resultBox.style.display = 'block';
-  resultText.innerHTML = '<div class="gemini-loading"><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div><div class="g-dot"></div>&nbsp; Generating guidance...</div>';
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: `You are an emergency safety expert for India. Give 5 detailed, actionable steps for "${topic}". Format as numbered list. Each point should be 1-2 sentences, practical and specific to Indian conditions. Include relevant helpline numbers where applicable.` }]
-          }]
-        })
-      }
-    );
-    const data = await res.json();
-    const tip = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (tip) {
-      const formatted = tip
-        .split('\n')
-        .filter(l => l.trim())
-        .map(l => `<div style="margin-bottom:0.5rem">${l}</div>`)
-        .join('');
-      resultText.innerHTML = formatted;
-    } else throw new Error('No response');
-  } catch(e) {
-    resultText.innerHTML = '<span style="color:var(--muted)">⚠️ Could not connect to Gemini. Check API key.</span>';
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '✨ <span style="background:linear-gradient(90deg,#4285f4,#34a853);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">Ask Gemini AI</span> &nbsp;— Get detailed AI guidance';
-}
-
-/* ─── GEMINI AI TIPS ─── */
-const GEMINI_API_KEY = 'AIzaSyAhlYwSnIzoeWXA76h9UtVKaVfzLrSFhXI'; // 🔑 Paste your Gemini API key here
-let selectedTopic = 'Flood Survival';
-
-function selectTopic(btn, topic) {
-  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedTopic = topic;
-  document.getElementById('geminiResult').style.display = 'none';
-  // Update link href
-  const link = document.getElementById('geminiGenBtn');
-  if(link) {
-    const prompt = "Give me 5 emergency safety tips for " + topic + " in India. Include helpline numbers: Police 100, Ambulance 108, Fire 101.";
-    link.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
-  }
-}
-
-function openGemini() {
-  var prompt = "Give me 5 emergency safety tips for " + selectedTopic + ". Include Indian helpline numbers like Police 100, Ambulance 108, Fire 101.";
-  var url = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
-  window.open(url, '_blank');
-}
-function updateLink(el) {
-  const prompt = "Give me 5 emergency safety tips for " + selectedTopic + " in India. Include helpline numbers: Police 100, Ambulance 108, Fire 101.";
-  el.href = "https://gemini.google.com/app?q=" + encodeURIComponent(prompt);
-}
-function generateGeminiTip() { openGemini(); }
-function updateGeminiLink(el) {}
-
 /* ─── WAKE UP RENDER BACKEND (free tier sleeps after 15min) ─── */
 fetch('https://safesignal-backend-sasp.onrender.com/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'ping'})}).catch(()=>{});
 
@@ -1448,41 +1303,7 @@ if(navigator.geolocation){
     document.getElementById('locText').textContent=`📍 ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
   });
 }
-
-/* ─── GEMINI SAFETY TIP ─── */
-async function loadGeminiTip() {
-  const GEMINI_KEY = 'AIzaSyAhlYwSnIzoeWXA76h9UtVKaVfzLrSFhXI'; // 🔑 Paste your key here
-  const topics = [
-    'earthquake safety', 'flood survival', 'fire emergency',
-    'road accident first aid', 'heat stroke prevention',
-    'CPR basics', 'women safety in public', 'cyclone preparedness'
-  ];
-  const topic = topics[Math.floor(Math.random() * topics.length)];
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: `Give ONE concise safety tip about "${topic}" for Indian users. Max 2 sentences. Start directly with the tip, no intro.` }]
-          }]
-        })
-      }
-    );
-    const data = await res.json();
-    const tip = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (tip) {
-      document.getElementById('geminiTipText').innerHTML =
-        `<span style="color:var(--muted);font-size:0.75rem;font-family:var(--font-mono)">${topic.toUpperCase()}</span><br>${tip}`;
-    }
-  } catch (e) {
-    document.getElementById('geminiTipCard').style.display = 'none';
-  }
-}
-loadGeminiTip();
 </script>
 </body>
 </html>
+
