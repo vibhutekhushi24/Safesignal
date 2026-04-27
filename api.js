@@ -46,7 +46,7 @@ async function apiFetch(path, options = {}) {
    with:
      sendChatToBackend(val);
    ─────────────────────────────────────────────────────────────── */
-const GEMINI_API_KEY = 'AIzaSyB3XxE0oEUn85fC881rXIXOsqpHPeJyzrc';
+const GEMINI_API_KEY = 'AIzaSyAkL2_ThVpfWW4JZtnVBCbBXrZu1WGNwdI';
 
 async function sendChatToBackend(userMessage) {
   const msgs = document.getElementById('chatMessages');
@@ -58,7 +58,7 @@ async function sendChatToBackend(userMessage) {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
